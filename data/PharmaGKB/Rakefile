@@ -1,0 +1,128 @@
+require 'rbbt/util/open'
+
+data_files = {
+  "genes" => "http://www.pharmgkb.org/commonFileDownload.action?filename=genes.zip",
+  "drugs" => "http://www.pharmgkb.org/commonFileDownload.action?filename=drugs.zip",
+  "diseases" => "http://www.pharmgkb.org/commonFileDownload.action?filename=diseases.zip",
+  "relationships" => "http://www.pharmgkb.org/commonFileDownload.action?filename=relationships.zip",
+  "variants" => "http://www.pharmgkb.org/commonFileDownload.action?filename=variantAnnotations.zip",
+  "pathways" => "http://www.pharmgkb.org/commonFileDownload.action?filename=pathways-tsv.zip"
+}
+
+data_files.each do |name, url|
+  file File.join('orig', name) do |t|
+    Open.write(t.name + '.zip', Open.read(url, :cache => false))
+    `unzip -p #{t.name + '.zip'} > #{ t.name }`
+    rm t.name + '.zip'
+  end
+end
+
+file :gene_drug => 'orig/relationships' do |t|
+  data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Drug:/}, :native => 1, :extra => 3)
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(Gene Drug) * "\t"
+    data.each do |gene, drug|
+      f.puts "#{ gene }\t#{drug * "|"}"
+    end
+  end
+end
+
+file :gene_disease => 'orig/relationships' do |t|
+  data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Disease:/}, :native => 1, :extra => 3)
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(Gene Disease) * "\t"
+    data.each do |gene, disease|
+      f.puts "#{ gene }\t#{disease * "|"}"
+    end
+  end
+end
+
+file :variants => 'orig/variants' do |t|
+  data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [3,7,8,9,10,4,5])
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(ID Gene Drug Drug_Class Disease Curation Feature Evidence) * "\t"
+    data.each do |gene, values|
+      f.puts "#{ gene }\t#{values.collect{|v| v * "|"} * "\t"}"
+    end
+  end
+end
+
+file :gene_pathway => 'orig/pathways' do |t|
+  pathways = {}
+  last_pathway = nil
+
+  Open.read(t.prerequisites.first).split(/\n/).each do |line|
+    if line =~ /(P.*):(.*)/
+      last_pathway = $1
+      pathways[last_pathway] = {:name => $2}
+    else
+      type, code, name = line.split(/\t/)
+      next unless type =='Gene'
+      pathways[last_pathway][:genes] ||= []
+      pathways[last_pathway][:genes] << name
+    end
+  end
+
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(ID Name Genes) * "\t"
+    pathways.each do |pathway, info|
+      next if info[:genes].nil?
+      f.puts "#{ pathway }\t#{info[:name]}\t#{info[:genes] * "|"}"
+    end
+  end
+end
+
+file :drug_pathway => 'orig/pathways' do |t|
+  pathways = {}
+  last_pathway = nil
+
+  Open.read(t.prerequisites.first).split(/\n/).each do |line|
+    if line =~ /(P.*):(.*)/
+      last_pathway = $1
+      pathways[last_pathway] = {:name => $2}
+    else
+      type, code, name = line.split(/\t/)
+    next unless type =='Drug'
+      pathways[last_pathway][:drugs] ||= []
+      pathways[last_pathway][:drugs] << name
+    end
+  end
+
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(ID Name Drugs) * "\t"
+    pathways.each do |pathway, info|
+      next if info[:drugs].nil?
+      f.puts "#{ pathway }\t#{info[:name]}\t#{info[:drugs] * "|"}"
+    end
+  end
+end
+
+
+file :disease_pathway => 'orig/pathways' do |t|
+  pathways = {}
+  last_pathway = nil
+
+  Open.read(t.prerequisites.first).split(/\n/).each do |line|
+    if line =~ /(P.*):(.*)/
+      last_pathway = $1
+      pathways[last_pathway] = {:name => $2}
+    else
+      type, code, name = line.split(/\t/)
+    next unless type =='Disease'
+      pathways[last_pathway][:diseases] ||= []
+      pathways[last_pathway][:diseases] << name
+    end
+  end
+
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(ID Name Diseases) * "\t"
+    pathways.each do |pathway, info|
+      next if info[:diseases].nil?
+      f.puts "#{ pathway }\t#{info[:name]}\t#{info[:diseases] * "|"}"
+    end
+  end
+end
+
+
+
+task :default => [:variants, :gene_disease, :gene_drug, :gene_pathway, :drug_pathway, :disease_pathway]
