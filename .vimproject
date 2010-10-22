@@ -1,0 +1,89 @@
+NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass *.html *.pl" {
+ bin=bin{
+  gene2drugs.rb
+  trans.rb
+ }
+ lib=lib{
+  phgx.rb
+  rake_functions.rb
+ }
+ data=data {
+  cancer_genes.tsv
+  Matador=Matador {
+   Rakefile
+   test.rb
+   orig=orig {
+   }
+  }
+  PharmaGKB=PharmaGKB {
+   Rakefile
+   orig=orig {
+   }
+  }
+  STRING=STRING {
+   Rakefile
+  }
+  STITCH=STITCH {
+   Rakefile
+   human.protein_chemical.txt
+   chemical.aliases.v2.0.tsv
+   chemical_chemical.links.v2.0.tsv
+   protein_chemical.links.v2.0.tsv
+  }
+  NCI=NCI{
+   drugen.pl
+   }
+  IRS=IRS {
+   all.ensbl.txt
+   cancer_all.txt
+   gene_metadoc.txt
+   literature.txt
+   table.tsv
+   drugs=drugs {
+    Matador=Matador {
+     all.txt
+     damaging.txt
+    }
+    PharmaGKB=PharmaGKB {
+     all.txt
+     damaging.txt
+     not_tolerated.txt
+    }
+    STITCH=STITCH {
+     all.txt
+     all_symbols.txt
+    }
+   }
+   genes=genes {
+    name_entrez.txt
+    ENSP=ENSP {
+     all.txt
+     damaging.txt
+     not_tolerated.txt
+    }
+    entrez=entrez {
+     all.txt
+    }
+    names=names {
+     all.txt
+     damaging.txt
+     not_tolerated.txt
+    }
+   }
+  }
+ }
+ doc=doc {
+  tmp=tmp {
+  }
+ }
+ webservice=webservice{
+ }
+ www=www{
+  app.rb
+  views=views{
+   layout.haml
+   main.haml
+   results.haml
+  }
+ }
+}

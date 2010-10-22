@@ -1,0 +1,25 @@
+require File.join(File.dirname(__FILE__),'../../lib/rake_functions.rb')
+require 'rbbt/util/open'
+
+data_files = {
+  "protein_protein" => "http://string-db.org:8080/newstring_download/protein.links.v8.3.txt.gz",
+}
+
+data_files.each do |name, url|
+  file File.join('orig', name) do |t|
+    Open.write(t.name, Open.read(url, :cache => false))
+  end
+end
+
+file :protein_protein => 'orig/protein_protein' do |t|
+  data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [0,2], :exclude => lambda{|l| l !~ /9606\.ENSP/}, :keep_empty => true)
+  p data.keys[1..10]
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + %w(Gene_ENSP Chemical Score) * "\t"
+    data.each do |gene, values|
+      f.puts "#{ gene.sub(/9606\./,'') }\t#{values.collect{|v| v * "|"} * "\t" }"
+    end
+  end
+end
+
+task :default => [:gene_chemical]

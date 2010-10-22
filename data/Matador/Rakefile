@@ -10,16 +10,14 @@ data_files.each do |name, url|
   end
 end
 
-file :gene_drug => 'orig/matador' do |t|
-  data = Open.to_hash(t.prerequisites.first, :native => 1, :fix => lambda{|l| l.sub(/9606./,'')}, :extra => [3,7,8,9,10,11,12])
+file :protein_drug => 'orig/matador' do |t|
+  data = Open.to_hash(t.prerequisites.first, :native => 3, :fix => lambda{|l| l.sub(/9606./,'')}, :extra => [1,7,8,9,10,11,12], :keep_empty => true)
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(Chemical Gene Score Annotation Mesh_Score Mesh_Annotation Matador_Score Matador_Annotation) * "\t"
+    f.puts "#" + (['Ensembl Protein ID'] + %w(Chemical Score Annotation Mesh_Score Mesh_Annotation Matador_Score Matador_Annotation)) * "\t"
     data.each do |gene, values|
       f.puts "#{ gene }\t#{values.collect{|v| v * "|" } * "\t"}"
     end
   end
 end
 
-
-
-task :default => [:gene_drug]
+task :default => [:protein_drug]
