@@ -1,0 +1,32 @@
+%h3== Gene: #{name * ", "}
+%p= @scores[name].inspect
+%dl
+  %dt Mutations
+  %dd
+    = haml :"gene/_snp", :layout => false, :locals => {:snp_info => info_gene[:SNP_pred]}
+  %dt GO terms
+  %dd= (info_gene[:GO] || []).collect{|id| go_link(id)} * ", "
+  %dt KEGG Pathways
+  %dd= (info_gene[:KEGG] || []).collect{|id| kegg_link(id)} * ", "
+  %dt Cancers for which it was reported
+  %dd= (info_gene[:Anais_cancer] || []) * ", "
+  %dt Drugs and Compounds
+  %dd
+    %dl 
+      - if info_gene[:Matador] && info_gene[:Matador].any?
+        %dt Matador
+        %dd
+          = haml :"gene/_matador", :layout => false, :locals => {:matador_info => info_gene[:Matador]}
+      - if info_gene[:PharmaGKB] && info_gene[:PharmaGKB].any?
+        %dt PharmaGKB
+        %dd
+          = haml :"gene/_pharmagkb", :layout => false, :locals => {:pharmagkb_info => info_gene[:PharmaGKB]}
+      - if info_gene[:STITCH] && info_gene[:STITCH].any?
+        %dt SITICH
+        %dd
+          = haml :"gene/_stitch", :layout => false, :locals => {:stitch_info => info_gene[:STITCH]}
+      - if info_gene[:NCI] && info_gene[:NCI].any?
+        %dt NCI
+        %dd
+          = haml :"gene/_nci", :layout => false, :locals => {:nci_info => info_gene[:NCI]}
+    

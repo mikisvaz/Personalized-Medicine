@@ -24,5 +24,7 @@ end
 
 #p  PhGx.analyze(genes)
 #p PhGx::PharmaGKB.variants4genes(genes)
-p PhGx::NCI.drugs4genes(genes)
+p PhGx::KEGG.pathways4genes(genes)
+
+
 

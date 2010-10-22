@@ -1,9 +1,8 @@
-require File.join(File.dirname(__FILE__),'../../lib/rake_functions.rb')
 require 'rbbt/util/open'
 
 data_files = {
   "protein_chemicals" => "http://stitch.embl.de:8080/download/protein_chemical.links.v2.0.tsv.gz",
-  "chemical_aliases" => "http://stitch.embl.de:8080/download/chemical.aliases.v2.0.tsv.gz",
+  "chemicals" => "http://stitch.embl.de:8080/download/chemical.aliases.v2.0.tsv.gz",
 }
 
 data_files.each do |name, url|
@@ -22,4 +21,14 @@ file :gene_chemical => 'orig/protein_chemicals' do |t|
   end
 end
 
-task :default => [:gene_chemical]
+file :chemicals => ['gene_chemical', 'orig/chemicals'] do |t|
+  chemicals = Open.to_hash(t.prerequisites.first, :native => 2).keys
+  File.open(t.name, 'w') do |f|
+    File.open(t.prerequisites.last).read.split(/\n/).each do |line|
+      next unless chemicals.include? line.split(/\t/).first
+      f.puts line
+    end
+  end
+end
+
+task :default => [:gene_chemical, :chemicals]

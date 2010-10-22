@@ -1,0 +1,19 @@
+- info = matador_info[0]
+- matador_info[1..-1].each do |list| info= info.zip(list) end
+
+%table
+  %thead
+    %tr
+      %th Name
+      %th Type (Main, Mesh, Matador)
+      %th Score (Main, Mesh, Matador)
+  %tbody
+    - info.each do |list|
+      - list.flatten!
+      %tr
+        %td= drug_link(list[0])
+        %td== (#{list.values_at(2,4,6).collect{|v| (v.nil? || v.empty? ? "MISSING" : v)} * ", "})
+        %td== (#{list.values_at(1,3,5).collect{|v| (v.nil? || v.empty? ? "MISSING" : v)} * ", "})
+
+
+

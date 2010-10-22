@@ -1,0 +1,17 @@
+- info = nci_info[0]
+- nci_info[1..-1].each do |list| info= info.zip(list) end
+
+%table
+  %thead
+    %tr
+      %th Name
+      %th Class
+  %tbody
+    - info.each do |list|
+      - list.flatten!
+      %tr
+        %td= list[0]
+        %td= list[1]
+
+
+

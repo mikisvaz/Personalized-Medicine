@@ -20,15 +20,15 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    orig=orig {
    }
   }
-  STRING=STRING {
-   Rakefile
-  }
   STITCH=STITCH {
    Rakefile
    human.protein_chemical.txt
    chemical.aliases.v2.0.tsv
    chemical_chemical.links.v2.0.tsv
    protein_chemical.links.v2.0.tsv
+  }
+  STRING=STRING {
+   Rakefile
   }
   NCI=NCI{
    drugen.pl
@@ -71,6 +71,9 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
     }
    }
   }
+  KEGG=KEGG{
+   Rakefile
+  }
  }
  doc=doc {
   tmp=tmp {
@@ -82,8 +85,18 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   app.rb
   views=views{
    layout.haml
+   gene=gene{
+    _matador.haml
+    _pharmagkb.haml
+    _stitch.haml
+    _nci.haml
+   }
+   _gene.haml
    main.haml
    results.haml
+   stylesheets=stylesheets{
+    app.sass
+   }
   }
  }
 }

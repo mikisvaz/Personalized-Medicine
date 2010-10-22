@@ -1,0 +1,20 @@
+- info = join_hash_fields(snp_info)
+
+%table
+  %thead
+    %tr
+      %th Mutation (SNP&GO)
+      %th Disease?
+      %th Score 
+      %th GO Terms 
+  %tbody
+    - info.each do |list|
+      - list.flatten!
+      %tr
+        %td= list[0]
+        %td= list[1]
+        %td= list[2]
+        %td= list[3].collect{|id| go_link(id.sub(/.._/,'GO:'))}
+
+
+

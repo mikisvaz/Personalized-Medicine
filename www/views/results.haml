@@ -1,27 +1,7 @@
-
 %h1 Genes and Drugs
 
 %dl
-- @info.keys.each do |gene|
-  %dt= gene * ", "
-  %dd
-    %dl 
-      - if @info[gene][:Matador] && @info[gene][:Matador].any?
-        %dt Matador
-        %dd
-          - @info[gene][:Matador].first.each do |drug|
-            %ul
-              %li= drug
-      - if @info[gene][:PharmaGKB] && @info[gene][:PharmaGKB].any?
-        %dt PharmaGKB
-        %dd
-          - @info[gene][:PharmaGKB].first.each do |drug|
-            %ul
-              %li= drug
-      - if @info[gene][:STITCH] && @info[gene][:STITCH].any?
-        %dt SITICH
-        %dd
-          - @info[gene][:STITCH].first.each do |drug|
-            %ul
-              %li= drug
+- @ordered_genes.each do |gene|
+  %div.genecard{:name => gene * "_"}
+    = haml :_gene, :layout => false, :locals => {:info_gene => @info[gene], :name => gene}
 

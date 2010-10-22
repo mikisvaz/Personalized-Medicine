@@ -1,6 +1,7 @@
 require 'rbbt/sources/organism'
 require 'rbbt/util/open'
 require 'cachehelper'
+require 'genecodis'
 
 
 module PhGx
@@ -51,10 +52,56 @@ module PhGx
     results
   end
 
+  module CancerAnnotations
+    CANCER_FILE = File.join(DATA_DIR, 'CancerGenes', 'anais-interactions.txt')
+    def self.load
+      Open.to_hash(CANCER_FILE, :native => 1, :extra => [0,3])
+    end
+  end
+
   module GeneInfo
+    GENE_CANCER_FILE = File.join(DATA_DIR, 'CancerGenes', 'anais-annotations.txt')
+    def self.genecodis(orig)
+       genes = PhGx.translate(orig, 'Hsa', 'Entrez Gene ID')
+
+       Genecodis.analyze('Hsa',nil,genes)
+    end
+
     def self.go4genes(orig)
       genes = PhGx.translate(orig, 'Hsa', 'Entrez Gene ID')
       data = Organism.goterms('Hsa')
+
+      PhGx.assign(orig, genes, data)
+    end
+
+    def self.cancer4genes_anais(orig)
+      genes = PhGx.translate(orig, 'Hsa', 'Ensembl Gene ID')
+      data = Open.to_hash(GENE_CANCER_FILE, :keep_empty => true)
+      PhGx.assign(orig, genes, data)
+    end
+  end
+
+  module KEGG
+    DIR = File.join(DATA_DIR, 'KEGG')
+    GENES_FILE = File.join(DIR, 'genes')
+    PATHWAY_GENE_FILE = File.join(DIR, 'gene_pathway')
+
+    def self.pathways4genes(orig)
+      genes = PhGx.translate(orig, 'Hsa', 'Ensembl Gene ID')
+      translations = Open.to_hash(GENES_FILE, :keep_empty => true, :single => true)
+      kegg = translations.values_at(*genes).collect{|name| name || "MISSING"}
+
+      data = Open.to_hash(PATHWAY_GENE_FILE, :keep_empty => true, :single => true)
+      PhGx.assign(orig, kegg, data)
+    end
+  end
+
+  module SNP_GO
+    DIR = File.join(DATA_DIR, 'SNP_GO')
+    SNP_FILE = File.join(DIR, 'snp_go.txt')
+    def self.snp_pred4genes(orig)
+      genes = PhGx.translate(orig, 'Hsa', 'UniProt/SwissProt Accession')
+      data = Open.to_hash(SNP_FILE, :keep_empty => true)
 
       PhGx.assign(orig, genes, data)
     end
@@ -118,10 +165,9 @@ module PhGx
     GENE_CHEMICAL_FILE = File.join(DIR, 'gene_drug')
 
     def self.drugs4genes(orig)
-      genes = PhGx.translate(orig, 'Hsa', 'UniProt/SwissProt ID')
+      genes = PhGx.translate(orig, 'Hsa', 'UniProt/SwissProt Accession')
+      genes.collect!{|name| name.sub(/_HUMAN/,'')}
       data = Open.to_hash(GENE_CHEMICAL_FILE, :keep_empty => true, :native => 2, :extra => [3,4])
-      p data.keys
-      p genes
 
       PhGx.assign(orig, genes, data)
     end
@@ -145,12 +191,45 @@ module PhGx
       results[gene][:STITCH] = values
     end
 
+    NCI.drugs4genes(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:NCI] = values
+    end
+
     GeneInfo.go4genes(genes).each do |gene, values|
       results[gene] ||= {}
       results[gene][:GO] = values
     end
 
+    GeneInfo.cancer4genes_anais(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:Anais_cancer] = values
+    end
+
+    SNP_GO.snp_pred4genes(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:SNP_pred] = values
+    end
+
+    KEGG.pathways4genes(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:KEGG] = values
+    end
+
     results
+  end
+
+  def self.gene_scores(info)
+    scores = {}
+    info.each do |gene, info|
+      scores[gene] = {
+        :cancer    => (info[:Anais_cancer] || [[]]).first.length,
+        :snp       => (info[:SNP_pred] || [[],[],[],[]])[1].select{|i| i == "Disease"}.length,
+        :snp_score => (info[:SNP_pred] || [[],[],[],[]])[2].collect{|i| i.to_i }.max || 0,
+        :drugs     => (info[:Matador]|| [[]]).first.length + (info[:PharmaGKB] || [[]]).first.length
+      }
+    end
+    scores
   end
 end
 
