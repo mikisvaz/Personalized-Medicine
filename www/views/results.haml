@@ -1,7 +1,6 @@
 %h1 Genes and Drugs
 
-%dl
 - @ordered_genes.each do |gene|
-  %div.genecard{:name => gene * "_"}
+  %div.genecard{:id => gene * "_"}
     = haml :_gene, :layout => false, :locals => {:info_gene => @info[gene], :name => gene}
 

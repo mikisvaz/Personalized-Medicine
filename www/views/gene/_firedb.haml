@@ -1,0 +1,18 @@
+- info = join_hash_fields(snp_info)
+
+%table
+  %thead
+    %tr
+      %th Mutation 
+      %th Catalitic Site?
+      %th Comment
+  %tbody
+    - info.each do |list|
+      - list.flatten!
+      %tr
+        %td= list[0]
+        %td= list[4] == 'Y' ? 'Yes' : 'No'
+        %td= list[5]
+
+
+

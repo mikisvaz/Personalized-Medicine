@@ -107,6 +107,28 @@ module PhGx
     end
   end
 
+  module Polyphen
+    DIR = File.join(DATA_DIR, 'Polyphen')
+    SNP_FILE = File.join(DIR, 'polyphen')
+    def self.snp_pred4genes(orig)
+      genes = PhGx.translate(orig, 'Hsa', 'UniProt/SwissProt Accession')
+      data = Open.to_hash(SNP_FILE, :keep_empty => true, :native => 2)
+
+      PhGx.assign(orig, genes, data)
+    end
+  end
+
+  module FireDB
+    DIR = File.join(DATA_DIR, 'FireDB')
+    SNP_FILE = File.join(DIR, 'firedb')
+    def self.snp_pred4genes(orig)
+      genes = PhGx.translate(orig, 'Hsa', 'UniProt/SwissProt Accession')
+      data = Open.to_hash(SNP_FILE, :keep_empty => true)
+
+      PhGx.assign(orig, genes, data)
+    end
+  end
+
   module Matador
     DIR = File.join(DATA_DIR, 'Matador')
     PROTEIN_DRUG_FILE = File.join(DIR, 'protein_drug')
@@ -208,7 +230,17 @@ module PhGx
 
     SNP_GO.snp_pred4genes(genes).each do |gene, values|
       results[gene] ||= {}
-      results[gene][:SNP_pred] = values
+      results[gene][:SNP_GO] = values
+    end
+
+    FireDB.snp_pred4genes(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:FireDB] = values
+    end
+
+    Polyphen.snp_pred4genes(genes).each do |gene, values|
+      results[gene] ||= {}
+      results[gene][:Polyphen] = values
     end
 
     KEGG.pathways4genes(genes).each do |gene, values|

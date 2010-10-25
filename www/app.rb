@@ -64,7 +64,7 @@ post '/' do
 
   @ordered_genes = @info.keys.sort do |gene1,gene2|
     diff = 0
-    %w( snp cancer drugs snp_score ).each do |type|
+    %w(snp cancer drugs snp_score ).each do |type|
       next if diff != 0
       type = type.to_sym
       if @scores[gene1][type] != @scores[gene2][type]
@@ -75,14 +75,23 @@ post '/' do
   end
 
   @entrez_codes = marshal_cache('entrez', :genes => genes) do
-    PhGx.translate(genes, 'Hsa', "Entrez Gene ID")
+    trans = {}
+    entrez = PhGx.translate(genes, 'Hsa', "Entrez Gene ID")
+    genes.zip(entrez).each do |p|
+      gene, entrez = p
+      trans[gene] = entrez
+    end
+
+    trans
   end
 
   @entrez_descriptions = marshal_cache('entrez_desc', :genes => genes) do
     descriptions = {}
     genes.each do |gene|
+      next if @entrez_codes[gene].nil? || @entrez_codes[gene] == "MISSING"
       descriptions[gene] = Entrez.get_gene(@entrez_codes[gene]).description
     end
+
     descriptions
   end
 

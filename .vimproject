@@ -86,10 +86,13 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   views=views{
    layout.haml
    gene=gene{
+    _firedb.haml
     _matador.haml
-    _pharmagkb.haml
-    _stitch.haml
     _nci.haml
+    _pharmagkb.haml
+    _polyphen.haml
+    _snp_go.haml
+    _stitch.haml
    }
    _gene.haml
    main.haml
