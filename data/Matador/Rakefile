@@ -5,6 +5,7 @@ data_files = {
 }
 
 data_files.each do |name, url|
+  FileUtils.mkdir 'orig' unless File.exists? 'orig'
   file File.join('orig', name) do |t|
     Open.write(t.name, Open.read(url, :cache => false))
   end

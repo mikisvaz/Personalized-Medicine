@@ -10,6 +10,7 @@ data_files = {
 }
 
 data_files.each do |name, url|
+  FileUtils.mkdir 'orig' unless File.exists? 'orig'
   file File.join('orig', name) do |t|
     Open.write(t.name + '.zip', Open.read(url, :cache => false))
     `unzip -p #{t.name + '.zip'} > #{ t.name }`

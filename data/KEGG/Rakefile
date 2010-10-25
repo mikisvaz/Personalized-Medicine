@@ -7,6 +7,7 @@ data_files = {
 }
 
 data_files.each do |name, url|
+  FileUtils.mkdir 'orig' unless File.exists? 'orig'
   file File.join('orig', name) do |t|
     Open.write(t.name, Open.read(url, :cache => false))
   end
@@ -74,7 +75,36 @@ file :gene_drug => 'orig/drugs' do |t|
   end
 
   Open.write(t.name, ['#KEGG Gene ID', 'KEGG Drug ID'] * "\t" + "\n" + pairs.collect{|gene, drugs| [gene, drugs * "|" ] * "\t"} * "\n")
+end
 
+file :drugs => 'orig/drugs' do |t|
+  info = {}
+  drug = nil
+  Open.read(t.prerequisites.first).
+    scan(/^[A-Z].*?(?:^[A-Z])/sm).select{|line| line =~ /^ENTRY|NAME|DBLINKS/}.collect{|line| line.sub(/\s+/,' ')}.each do |line|
+      if line =~ /^ENTRY\s+(\w+)/
+        drug = $1
+        next
+      end
+
+      if line =~ /^NAME(.*)/
+        names = $1.split(/;/)
+        names.each do |name|
+          info[drug] ||= [[],[]]
+          info[drug][0] << name.chomp.strip
+        end
+      end
+
+      if line =~ /^DBLINKS(.*)/
+        $1.match(/PubChem: (\d*)/)
+        pubchem = $1
+        next unless pubchem
+        info[drug] ||= [[],[]]
+        info[drug][1] << pubchem.chomp.strip
+      end
+  end
+
+  Open.write(t.name, ['#KEGG Drug ID', 'KEGG Drug Name', 'PubChem Drug ID'] * "\t" + "\n" + info.collect{|drug, info| [drug, info.collect{|v| v * "|"} ].flatten * "\t"} * "\n")
 end
 
 task :default => [:genes]
