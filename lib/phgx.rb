@@ -256,8 +256,8 @@ module PhGx
     info.each do |gene, info|
       scores[gene] = {
         :cancer    => (info[:Anais_cancer] || [[]]).first.length,
-        :snp       => (info[:SNP_pred] || [[],[],[],[]])[1].select{|i| i == "Disease"}.length,
-        :snp_score => (info[:SNP_pred] || [[],[],[],[]])[2].collect{|i| i.to_i }.max || 0,
+        :snp       => (info[:SNP_GO] || [[],[],[],[]])[1].select{|i| i == "Disease"}.length,
+        :snp_score => (info[:SNP_GO] || [[],[],[],[]])[2].collect{|i| i.to_i }.max || 0,
         :drugs     => (info[:Matador]|| [[]]).first.length + (info[:PharmaGKB] || [[]]).first.length
       }
     end

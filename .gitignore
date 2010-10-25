@@ -17,4 +17,10 @@ data/STITCH/gene_chemical
 data/STITCH/human.protein_chemical.txt
 data/STITCH/protein_chemical.links.v2.0.tsv
 data/STRING/protein_protein
-
+data/KEGG/drugs
+data/KEGG/gene_drug
+data/KEGG/gene_pathway
+data/KEGG/genes
+data/KEGG/pathways
+data/STITCH/chemicals
+names.txt

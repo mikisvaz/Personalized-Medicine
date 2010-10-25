@@ -98,7 +98,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    main.haml
    results.haml
    stylesheets=stylesheets{
+    _base.sass
     app.sass
+    main.sass
+    rounded_corners.sass
+    screen.sass
    }
   }
  }
