@@ -10,6 +10,7 @@
   %tbody
     - info.each do |list|
       - list.flatten!
+      - p list
       %tr
         %td= list[0]
         %td= list[1]

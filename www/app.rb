@@ -7,9 +7,7 @@ require 'rbbt/sources/entrez'
 
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
-  result = list[0]
-  list[1..-1].each{|l| result = result.zip(l)}
-  result.collect{|l| l.flatten}
+  list[0].zip(*list[1..-1])
 end
 
 helpers do
@@ -50,13 +48,12 @@ end
 post '/' do
   genes = params[:genes].split(/\n/).collect{|l| l.chomp.split(/\s/,-1)}
 
-  @anais = marshal_cache('annotations') do
-    PhGx::CancerAnnotations.load
-  end
 
   @info = marshal_cache('info', :genes => genes) do
     PhGx.analyze(genes)
   end
+
+  @anais = PhGx::CancerAnnotations.load_data
 
   @scores = marshal_cache('scores', :genes => genes) do
     PhGx.gene_scores(@info)
@@ -79,7 +76,7 @@ post '/' do
     entrez = PhGx.translate(genes, 'Hsa', "Entrez Gene ID")
     genes.zip(entrez).each do |p|
       gene, entrez = p
-      trans[gene] = entrez
+      trans[gene] = entrez.first
     end
 
     trans
