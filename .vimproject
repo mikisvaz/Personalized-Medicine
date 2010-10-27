@@ -5,7 +5,8 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  }
  lib=lib{
   phgx.rb
-  rake_functions.rb
+  tc_hash.rb
+  tsv.rb
  }
  data=data {
   cancer_genes.tsv

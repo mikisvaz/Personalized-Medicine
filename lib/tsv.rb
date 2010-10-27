@@ -156,41 +156,43 @@ class TSV
     [data, key_field, fields]
   end
 
-  attr_accessor :data, :key_field, :fields, :case_insensitive
+  attr_accessor :data, :key_field, :fields, :case_insensitive, :filename
   def initialize(file, options = {})
-    if Hash === file || PersistenceHash === file
+    @case_insensitive = options[:case_insensitive] == true
+
+    case
+    when Hash === file || PersistenceHash === file
+      @filename = Hash
       @data = file
       return self
-    end
-
-    if String === file && File.exists?(file)
-      filename = file
+    when File === file
+      @filename = file.path
+    when String === file && File.exists?(file)
+      @filename = file
       file = File.open(file)
-    end
-
-    if String === file 
-      filename = file.filename
-      file = IOString.new(file)
+    when String === file
+      @filename = String
+      file = StringIO.new(file)
     end
 
     if options[:persistence]
       options.delete :persistence
-      persistence_file = TSV.get_persistence_file filename, "file:#{ filename }:", options
+      persistence_file = TSV.get_persistence_file @filename, "file:#{ @filename }:", options
 
       if File.exists? persistence_file
-        puts "Loading Persistence for #{ filename } in #{persistence_file}"
+        puts "Loading Persistence for #{ @filename } in #{persistence_file}"
         @data      = PersistenceHash.get(persistence_file, false)
         @key_field = @data.key_field
         @fields    = @data.fields
       else
-        puts "Persistent Parsing for #{ filename } in #{persistence_file}"
+        puts "Persistent Parsing for #{ @filename } in #{persistence_file}"
         @data, @key_field, @fields = TSV.parse(file, options.merge(:persistence_file => persistence_file))
         @data.key_field            = @key_field
         @data.fields               = @fields
         @data.read
       end
     else
-      puts "Non-persistent parsing for #{ filename }"
+      puts "Non-persistent parsing for #{ @filename }"
       @data, @key_field, @fields = TSV.parse(file, options)
     end
 
