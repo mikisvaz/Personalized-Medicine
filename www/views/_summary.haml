@@ -1,18 +1,15 @@
 %table{:id => "summary_table"}
-  %thead
-    %tr
-      %th{:width => 100} GeneName
-      %th{:width => 100} Mutation
-      %th{:width => 100} Score
-      %th{:width => 200} Pathways
-      %th{:width => 200} Drugs [M]atador ,  [P]harma[GKB]
-      %th{:width => 100} Cancers for which it was reported
-  %tbody      
-    - @ordered_genes.each do |gene|
-      %tr{:id => "row_" + gene * "_"}
-        %td= @info[gene][:PharmaGKB].inspect 
-        %td 
-        %td     
-        %td= kegg_summary(@info[gene][:KEGG]) 
-        %td= matador_summary(@info[gene][:Matador]) + pharmagkb_summary(@info[gene][:PharmaGKB])
-        %td= cancer_genes_summary(@info[gene][:Anais_cancer])        
+%div
+  %h2 Legend
+  %table
+    %thead
+      %th Pathways
+      %th Drugs
+    %tbody
+      %td
+        %p  <span style="color:red">red:</span> pathway enriched in mutations for the given cancer type
+      %td
+        %p  [M]: Matador
+        %p  [PGKB]: PharmaGKB database
+        %p  <span style="color:red">red:</span> Matador DIRECT association   
+  

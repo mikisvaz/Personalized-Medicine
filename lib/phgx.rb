@@ -41,7 +41,7 @@ module PhGx
   module CancerAnnotations
     CANCER_FILE = File.join(DATA_DIR, 'CancerGenes', 'anais-interactions.txt')
     def self.load_data
-      TSV.new(CANCER_FILE, :native => 1, :extra => [0,3], :persistence => true)
+      TSV.new(CANCER_FILE, :native => 1, :persistence => true)
     end
   end
 
@@ -135,7 +135,7 @@ module PhGx
 
     def self.drugs4genes(orig)
       genes = PhGx.translate(orig, 'Hsa', 'Associated Gene Name')
-      data = TSV.new(PROTEIN_DRUG_FILE, :keep_empty => true, :persistence => true)
+      data = TSV.new(PROTEIN_DRUG_FILE, :keep_empty => true, :flatten =>true, :persistence => true)
       PhGx.assign(orig, genes, data)
     end
 

@@ -4,6 +4,12 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'phgx'
 require 'rbbt/sources/go'
 require 'rbbt/sources/entrez'
+require 'digest/md5'
+require 'json'
+
+enable :sessions
+$anais = PhGx::CancerAnnotations.load_data
+
 
 
 def join_hash_fields(list)
@@ -13,12 +19,55 @@ end
 
 helpers do
 
+  def make_cookie(genes)
+     digest = Digest::MD5.hexdigest(genes.inspect)
+     digest
+  end
+  
+  def summary_table(info,page,rp,sortname,sortorder)
+    rows    = []
+    rstart  = (page.to_i - 1)*rp.to_i
+    rend    = rstart + rp.to_i
+    
+    case sortname
+    when 'pathways'
+      genes = @info.sort_by do |key,value|
+        (value[:KEGG] || []).size
+      end.collect{|p| p.first}.reverse
+    
+    when 'drugs'
+      genes = @info.sort_by do |key,value|
+        ((value[:PharmaGKB] || []) + (value[:Matador] || [[]])[0]).size
+      end.collect{|p| p.first}.reverse  
+      
+    when 'cancers'
+      genes = @info.sort_by do |key,value|
+        (value[:Anais_cancer] || []).size
+      end.collect{|p| p.first}.reverse   
+    else
+       genes   = info.keys.sort_by{|list| list[2]}
+    end
+    
+    genes.reverse! if sortorder == "asc"
+    
+    for i in rstart..rend do
+      gname = genes[i]
+      p info[gname][:KEGG]
+
+      row = {"id"=>gname,"cell"=>[gname,'2','3','4','5',kegg_summary(info[gname][:KEGG]).join(', '),(matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')]}
+      rows << row
+    end
+    
+    data = {:page => page, :total => @info.size, :rows =>rows}
+    data.to_json
+  end
+  
   def matador_summary(matador_drugs)
     if matador_drugs != nil  
       join_hash_fields(matador_drugs).collect do |d|
         name, score, annot, mscore, mannot = d
         css_class = (mannot == 'DIRECT')?'red':'normal';
-        "<span class='#{css_class}'>#{name}</span> [M],"
+        "<span class='#{css_class}'>#{name}</span> [M]"
       end
     else
       []  
@@ -28,7 +77,7 @@ helpers do
   def pharmagkb_summary(pgkb_drugs)
     if pgkb_drugs != nil
       pgkb_drugs.collect do |d|
-        "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB], "
+        "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB]"
       end
     else
       []  
@@ -38,14 +87,14 @@ helpers do
   def kegg_summary(pathways)
     if pathways != nil
       pathways.collect do |k|
-        name = '<span '
-  
-        join_hash_fields(@anais[k]).each do |p|
-          cancer, score = p
+        desc = k
+        name = ''
+        join_hash_fields($anais[k]).each do |p|
+          cancer, type, score, desc = p
           css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
-          name += "class='#{ css_class }'>#{k} [#{ cancer } cancer]</span>"
+          name += " <span class='#{ css_class }'>[#{ cancer } cancer]</span>"
         end
-        "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{ name }</a>"
+        "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{desc} #{ name }</a>"
       end
     else
       []
@@ -55,7 +104,7 @@ helpers do
   def cancer_genes_summary(cancers)
     if cancers != nil
       cancers.collect do |c|
-        "<span>#{c}</span>, "
+        "<span>#{c}</span>"
       end
     else
       []  
@@ -97,15 +146,30 @@ helpers do
   
 end
 
-post '/' do
-  genes = params[:genes].split(/\n/).collect{|l| l.chomp.split(/\s/,-1)}
-
-
-  @info = marshal_cache('info', :genes => genes) do
+post '/ajax/genes' do 
+  
+  page        = params[:page] ||= 1
+  rp          = params[:rp] ||= 15
+  sortname    = params[:sortname] ||= 'score'
+  sortorder   = params[:sortorder] ||= 'desc'
+  cookie      = session["genes"] ||= nil
+  
+  @info = marshal_cache('info',cookie) do
     PhGx.analyze(genes)
   end
+  
+  #p summary_table(@info,page,rp,sortname,sortorder)  
+  summary_table(@info,page,rp,sortname,sortorder)
+end
 
-  @anais = PhGx::CancerAnnotations.load_data
+post '/' do
+  genes   = params[:genes].split(/\n/).collect{|l| l.chomp.split(/\s/,-1)}
+  cookie  = make_cookie(genes)
+  session["genes"] ||= cookie
+  
+  @info = marshal_cache('info',cookie) do
+    PhGx.analyze(genes)
+  end
 
   @scores = marshal_cache('scores', :genes => genes) do
     PhGx.gene_scores(@info)
