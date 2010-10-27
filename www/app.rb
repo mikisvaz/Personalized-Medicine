@@ -9,13 +9,13 @@ require 'json'
 
 enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
-
-
+DATA_FILE=ARGV[0]
 
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
   list[0].zip(*list[1..-1])
 end
+
 
 helpers do
 
@@ -37,7 +37,7 @@ helpers do
     
     when 'drugs'
       genes = @info.sort_by do |key,value|
-        ((value[:PharmaGKB] || []) + (value[:Matador] || [[]])[0]).size
+        ((value[:PharmaGKB] || []) + (value[:Matador] || [])).size
       end.collect{|p| p.first}.reverse  
       
     when 'cancers'
@@ -52,10 +52,20 @@ helpers do
     
     for i in rstart..rend do
       gname = genes[i]
-      p info[gname][:KEGG]
-
-      row = {"id"=>gname,"cell"=>[gname,'2','3','4','5',kegg_summary(info[gname][:KEGG]).join(', '),(matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')]}
-      rows << row
+      gene_info = info[gname]
+      p gene_info
+      p gene_info[:Matador]
+      gene_info[:Mutations].each do |mutation|
+        row = {
+          "id"=>gname,
+          "cell"=>[
+            gname.last,mutation[0],'3','4','5',
+            kegg_summary(gene_info[:KEGG]).join(', '),
+            (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
+            cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')
+        ]}
+        rows << row
+      end
     end
     
     data = {:page => page, :total => @info.size, :rows =>rows}
@@ -63,42 +73,33 @@ helpers do
   end
   
   def matador_summary(matador_drugs)
-    if matador_drugs != nil  
-      join_hash_fields(matador_drugs).collect do |d|
-        name, score, annot, mscore, mannot = d
-        css_class = (mannot == 'DIRECT')?'red':'normal';
-        "<span class='#{css_class}'>#{name}</span> [M]"
-      end
-    else
-      []  
+    return [] if matador_drugs.nil?
+    matador_drugs.collect do |d|
+      name, score, annot, mscore, mannot = d
+      css_class = (mannot == 'DIRECT')?'red':'normal';
+      "<span class='#{css_class}'>#{name}</span> [M]"
     end  
   end
   
   def pharmagkb_summary(pgkb_drugs)
-    if pgkb_drugs != nil
-      pgkb_drugs.collect do |d|
+    return [] if pgkb_drugs.nil?
+    pgkb_drugs.collect do |d|
         "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB]"
-      end
-    else
-      []  
     end
   end
   
   def kegg_summary(pathways)
-    if pathways != nil
-      pathways.collect do |k|
-        desc = k
-        name = ''
-        join_hash_fields($anais[k]).each do |p|
-          cancer, type, score, desc = p
-          css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
-          name += " <span class='#{ css_class }'>[#{ cancer } cancer]</span>"
-        end
-        "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{desc} #{ name }</a>"
+    return [] if pathways.nil?
+    pathways.collect do |k|
+      desc = k
+      name = ''
+      join_hash_fields($anais[k]).each do |p|
+        cancer, type, score, desc = p
+        css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
+        name += " <span class='#{ css_class }'>[#{ cancer } cancer]</span>"
       end
-    else
-      []
-    end  
+      "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{desc} #{ name }</a>"
+    end
   end
   
   def cancer_genes_summary(cancers)
@@ -154,62 +155,24 @@ post '/ajax/genes' do
   sortorder   = params[:sortorder] ||= 'desc'
   cookie      = session["genes"] ||= nil
   
+  p cookie
   @info = marshal_cache('info',cookie) do
-    PhGx.analyze(genes)
+    raise "Info should be preloaded"
   end
   
   #p summary_table(@info,page,rp,sortname,sortorder)  
   summary_table(@info,page,rp,sortname,sortorder)
 end
 
-post '/' do
-  genes   = params[:genes].split(/\n/).collect{|l| l.chomp.split(/\s/,-1)}
-  cookie  = make_cookie(genes)
-  session["genes"] ||= cookie
-  
-  @info = marshal_cache('info',cookie) do
-    PhGx.analyze(genes)
-  end
+get '/' do
+  cookie  = make_cookie(DATA_FILE)
+  session["genes"] = cookie
 
-  @scores = marshal_cache('scores', :genes => genes) do
-    PhGx.gene_scores(@info)
-  end
-
-  @ordered_genes = @info.keys.sort do |gene1,gene2|
-    diff = 0
-    %w(snp cancer drugs snp_score ).each do |type|
-      next if diff != 0
-      type = type.to_sym
-      if @scores[gene1][type] != @scores[gene2][type]
-        diff = (@scores[gene2][type] || 0) <=> (@scores[gene1][type] || 0)
-      end
-    end
-    diff
-  end
-
-  @entrez_codes = marshal_cache('entrez', :genes => genes) do
-    trans = {}
-    entrez = PhGx.translate(genes, 'Hsa', "Entrez Gene ID")
-    genes.zip(entrez).each do |p|
-      gene, entrez = p
-      trans[gene] = entrez.first
-    end
-
-    trans
-  end
-
-  @entrez_descriptions = marshal_cache('entrez_desc', :genes => genes) do
-    descriptions = {}
-    Entrez.get_gene(@entrez_codes.values_at(*genes.compact)).each do |name, gene|
-      descriptions[name] = gene.description
-    end
-    #genes.each do |gene|
-    #  next if @entrez_codes[gene].nil? || @entrez_codes[gene] == "MISSING"
-    #  descriptions[gene] = Entrez.get_gene(@entrez_codes[gene]).description
-    #end
-
-    descriptions
+  p cookie
+  @info = marshal_cache('info', cookie) do
+    PhGx.analyze_NGS(DATA_FILE)
   end
 
   haml :results
 end
+

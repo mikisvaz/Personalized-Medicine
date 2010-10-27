@@ -2,6 +2,8 @@ require 'tokyocabinet'
 
 class TCHash < TokyoCabinet::HDB
   class OpenError < StandardError;end
+  class KeyFormatError < StandardError;end
+
   Serializer = Marshal
 
   FIELD_INFO_ENTRIES = {:fields => '__tokyocabinet_hash_fields', :key_field => '__tokyocabinet_hash_native_field'}
@@ -16,12 +18,14 @@ class TCHash < TokyoCabinet::HDB
 
   alias original_get_brackets []
   def [](key)
+    return nil unless String === key
     result = self.original_get_brackets(key)
     result ? Serializer.load(result) : nil
   end
 
   alias original_set_brackets []=
   def []=(key,value)
+    raise KeyFormatError, "Key must be a String, its #{key.class.to_s}" unless String === key
     write unless write?
     self.original_set_brackets(key, Serializer.dump(value))
   end

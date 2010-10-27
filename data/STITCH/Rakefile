@@ -15,7 +15,7 @@ end
 file :gene_chemical => 'orig/protein_chemicals' do |t|
   data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [0,2], :exclude => lambda{|l| l !~ /9606\./}, :keep_empty => true)
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(Gene_ENSP Chemical Score) * "\t"
+    f.puts "#" + ['Ensembl Protein ID', 'Chemical Score'] * "\t"
     data.each do |gene, values|
       f.puts "#{ gene.sub(/9606\./,'') }\t#{values.collect{|v| v * "|"} * "\t" }"
     end

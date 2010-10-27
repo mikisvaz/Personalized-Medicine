@@ -4,7 +4,6 @@ require 'rbbt/util/tmpfile'
 require 'rbbt/sources/organism'
 
 class TestTSV < Test::Unit::TestCase
-
   def test_keep_empty
     content =<<-EOF
 #Id ValueA ValueB Comment
@@ -16,7 +15,33 @@ row2 A B
       data, key_field, fields = TSV.parse(File.open(filename), :sep => /\s+/, :keep_empty => true)
       assert_equal ["c"], data["row1"][2]
       assert_equal [""], data["row2"][2]
-      p data
+    end
+  end
+
+  def test_slice
+    content =<<-EOF
+#ID ValueA ValueB Comment
+row1 a b c
+row2 A B C
+    EOF
+
+    TmpFile.with_file(content) do |filename|
+      tsv = TSV.new(File.open(filename), :sep => /\s/)
+      assert_equal [["a"],["c"]], tsv.slice("ValueA", "Comment")["row1"]
+    end
+  end
+
+  def _test_zipped
+    content =<<-EOF
+#ID ValueA ValueB Comment
+row1 a b c
+row1 A B C
+    EOF
+
+    TmpFile.with_file(content) do |filename|
+      data, key_field, fields = TSV.parse(File.open(filename), :sep => /\s/, :zipped => true)
+      assert_equal ["a","b","c"], data["row1"][0]
+      assert_equal ["A","B","C"], data["row1"][1]
     end
   end
 

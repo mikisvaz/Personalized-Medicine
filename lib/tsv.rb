@@ -31,6 +31,17 @@ class TSV
     File.join(cachedir, prefix.gsub(/\s/,'_').gsub(/\//,'>') + Digest::MD5.hexdigest([file, options].inspect))
   end
 
+  @debug = ENV['TSV_DEBUG'] == "true"
+  def self.log(message)
+    STDERR.puts message if @debug == true
+  end
+
+  def self.debug=(value)
+    @debug = value
+  end
+
+
+
   #{{{ Parsing
   
   def self.parse_fields(io, delimiter = "\t")
@@ -44,8 +55,13 @@ class TSV
       field
     else
       fields.each_with_index{|f,i| return i if f =~ /#{Regexp.quote(field)}/}
-      raise FieldNotFound, "Field #{ field } was not found"
+      raise FieldNotFoundError, "Field #{ field } was not found"
     end
+  end
+
+  def self.zip_fields(list)
+    return [] if list.nil? || list.empty?
+    list[0].zip(*list[1..-1])
   end
 
   def self.each_line(file, &block)
@@ -165,11 +181,11 @@ class TSV
       @filename = Hash
       @data = file
       return self
-    when File === file
-      @filename = file.path
     when String === file && File.exists?(file)
       @filename = file
       file = File.open(file)
+    when File === file
+      @filename = file.path
     when String === file
       @filename = String
       file = StringIO.new(file)
@@ -180,19 +196,19 @@ class TSV
       persistence_file = TSV.get_persistence_file @filename, "file:#{ @filename }:", options
 
       if File.exists? persistence_file
-        puts "Loading Persistence for #{ @filename } in #{persistence_file}"
+        TSV.log "Loading Persistence for #{ @filename } in #{persistence_file}"
         @data      = PersistenceHash.get(persistence_file, false)
         @key_field = @data.key_field
         @fields    = @data.fields
       else
-        puts "Persistent Parsing for #{ @filename } in #{persistence_file}"
+        TSV.log "Persistent Parsing for #{ @filename } in #{persistence_file}"
         @data, @key_field, @fields = TSV.parse(file, options.merge(:persistence_file => persistence_file))
         @data.key_field            = @key_field
         @data.fields               = @fields
         @data.read
       end
     else
-      puts "Non-persistent parsing for #{ @filename }"
+      TSV.log "Non-persistent parsing for #{ @filename }"
       @data, @key_field, @fields = TSV.parse(file, options)
     end
 
@@ -208,7 +224,9 @@ class TSV
   end
 
   def [](key)
+
     if Array === key
+      return @data[key] if @data[key] != nil
       key.each{|k| v = self[k]; return v unless v.nil?}
       return nil
     end
@@ -243,7 +261,21 @@ class TSV
   end
 
   def merge!(new_data)
-    @data.merge!(new_data)
+    new_data.each do |key, value|
+      self[key] = value
+    end
+  end
+
+  def sort_by(&block)
+    @data.sort_by &block
+  end
+
+  def sort(&block)
+    @data.sort &block
+  end
+
+  def size
+    @data.size
   end
 
   #{{{ Index
@@ -273,7 +305,7 @@ class TSV
         key = [key]
       end
 
-      values.flatten.each do |value|
+      values.flatten.compact.each do |value|
         value = value.downcase if options[:case_insensitive]
         data[value] ||= []  
         data[value].concat key
@@ -301,6 +333,18 @@ class TSV
     index
   end
 
+  def slice(*fields)
+    new = TSV.new({}, :case_insensitive => @case_insensitive)
+    positions = fields.collect{|field| TSV.field_pos(self.fields, field)}
+    data.each do |key, values|
+      new[key] = values.values_at(*positions)
+    end
+    new.fields = fields
+    new.key_field = self.key_field
+
+    new
+  end
+
   #{{{ Helpers
 
   def self.index(file, options)
@@ -312,15 +356,20 @@ class TSV
 
     opt_data[:persistence] = true if options[:data_persistence]
 
-    #opt_index.merge! :persistence_file => get_persistence_file(file, "index:#{ file }_#{options[:field]}:", opt_index) if options[:persistence]
-    opt_index.merge! :persistence_file => get_persistence_file(file, "index:#{ file }_#{options[:native]}:", opt_index) if options[:persistence]
+    opt_index.merge! :persistence_file => get_persistence_file(file, "index:#{ file }_#{options[:field]}:", opt_index) if options[:persistence]
 
     if ! opt_index[:persistence_file].nil? && File.exists?(opt_index[:persistence_file])
-      puts "Reloading persistent index for #{ file }: #{opt_index[:persistence_file]}"
+      TSV.log "Reloading persistent index for #{ file }: #{opt_index[:persistence_file]}"
       TSV.new(PersistenceHash.get(opt_index[:persistence_file], false),opt_index)
     else
+      TSV.log "Creating index for #{ file }: #{opt_index[:persistence_file]}"
       data = TSV.new(file, opt_data)
       data.index(opt_index)
     end
   end
+end
+
+if __FILE__ == $0
+
+ i = TSV.index('/home/mvazquezg/rbbt/data/organisms/Hsa/identifiers2', :format => "Ensembl Protein ID", :persistence => true)
 end

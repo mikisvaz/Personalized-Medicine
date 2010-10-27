@@ -7,7 +7,7 @@ require 'tsv'
 module PhGx
 
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
-  DATA_DIR = '/data'
+  DATA_DIR = File.join(ROOT_DIR, 'data')
 
   def self.translate(orig, org = "Hsa", format = "Entrez Gene ID")
     index = TSV.index(File.join(Organism.datadir(org), 'identifiers'), :field => format, :persistence => true, :data_persistence => true)
@@ -115,18 +115,6 @@ module PhGx
     end
   end
 
-  module Matador
-    DIR = File.join(DATA_DIR, 'Matador')
-    PROTEIN_DRUG_FILE = File.join(DIR, 'protein_drug')
-
-    def self.drugs4genes(orig)
-      genes = PhGx.translate(orig, 'Hsa', 'Ensembl Protein ID')
-      data = TSV.new(PROTEIN_DRUG_FILE, :keep_empty => true, :persistence => true)
-
-      PhGx.assign(orig, genes, data)
-    end
-  end
-
   module PharmaGKB
     DIR = File.join(DATA_DIR, 'PharmaGKB')
     PROTEIN_DRUG_FILE = File.join(DIR, 'gene_drug')
@@ -179,6 +167,19 @@ module PhGx
       PhGx.assign(orig, genes, data)
     end
 
+  end
+
+  def self.gene_scores(info)
+    scores = {}
+    info.each do |gene, info|
+      scores[gene] = {
+        :cancer    => (info[:Anais_cancer] || [[]]).first.length,
+        :snp       => (info[:SNP_GO] || [[],[],[],[]])[1].select{|i| i == "Disease"}.length,
+        :snp_score => (info[:SNP_GO] || [[],[],[],[]])[2].collect{|i| i.to_i }.max || 0,
+        :drugs     => (info[:Matador]|| [[]]).first.length + (info[:PharmaGKB] || [[]]).first.length
+      }
+    end
+    scores
   end
 
   def self.analyze(genes)
@@ -236,22 +237,90 @@ module PhGx
     results
   end
 
-  def self.gene_scores(info)
-    scores = {}
-    info.each do |gene, info|
-      scores[gene] = {
-        :cancer    => (info[:Anais_cancer] || [[]]).first.length,
-        :snp       => (info[:SNP_GO] || [[],[],[],[]])[1].select{|i| i == "Disease"}.length,
-        :snp_score => (info[:SNP_GO] || [[],[],[],[]])[2].collect{|i| i.to_i }.max || 0,
-        :drugs     => (info[:Matador]|| [[]]).first.length + (info[:PharmaGKB] || [[]]).first.length
-      }
+  def self.get_db_info(gene, path, options)
+    format = options.collect{|opt| opt =~ /^field\[(.*?)\]/; $1}.compact.first
+    flatten = options.select{|opt| opt == "flatten"}.any?
+
+    tsv = TSV.new(path, :keep_empty => true, :persistence => true, :native => format, :flatten => flatten)
+
+    # Get format to use
+    format ||= tsv.key_field # Defaults to first field
+
+    # Get intermetiate ids
+    intermediate = options.collect{|opt| opt =~ /^intermediate\[(.*?)\]/; $1}.compact.first
+
+
+    if intermediate != nil
+      path, from, to = intermediate.match(/(.*)<(.*)><(.*)>/).values_at(1,2,3)
+      path = File.join(DATA_DIR,path.gsub(/:/,'/'))
+      int = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :field => from, :persistence => true, :data_persistence => true)[gene]
+      translation = TSV.index(path, :field => to, :extra => from, :persistence => true, :data_persistence => true)[int]
+    else
+      translation = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :field => format, :persistence => true, :data_persistence => true)[gene]
     end
-    scores
+
+    return nil if translation.nil?
+
+    data = tsv[translation]
+
+    if options.include? "zip"
+      TSV.zip_fields data
+    else
+      data
+    end
   end
+
+  def self.get_gene_info(gene)
+    info = {}
+ 
+   [ 
+     'Matador#Matador:protein_drug#zip',
+     'PharmaGKB#PharmaGKB:gene_drug#zip',
+     'NCI#NCI:gene_drug#zip|field[UniProt/SwissProt Accession]',
+     'KEGG_DRUG#KEGG:gene_drug#zip|intermediate[KEGG:gene_drug<Ensembl Gene ID><KEGG Gene ID>]',
+     'STITCH#STITCH:gene_chemical#zip',
+     'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
+     'SNP_GO#SNP_GO:snp_go.txt#zip',
+     'FireDB#FireDB:firedb#zip',
+     'Polyphen#Polyphen:polyphen#zip',
+     'Anais_cancer#CancerGenes:anais-annotations.txt#flatten',
+   ].each do |db|
+      key, path, options = db.match(/(.*?)#(.*?)#(.*)/).values_at(1,2,3)
+      name = path.match(/^(.*?)[:#]/)[1]
+      path = File.join(DATA_DIR,path.gsub(/:/,'/'))
+
+      info[key.to_sym] = get_db_info(gene, path, options.split('|'))
+    end
+    info
+  end
+
+  def self.analyze_NGS(filename)
+    gene_fields = ['Protein ID', 'Gene ID', 'Gene Name']
+    mutation_fields = ['Chr', 'Position', 'Substitution', 'SNP Type', 'Ubio Score']
+
+    data = TSV.new(filename, :native => 'Position1', :keep_empty => true)
+
+    genes    = data.slice(*gene_fields)
+    mutation = data.slice(*mutation_fields)
+
+    gene_data = TSV.new({})
+
+    genes.each do |position, info|
+      next unless genes[position].flatten.compact.any?
+      gene_data[genes[position].flatten] = {:Mutations => TSV.zip_fields(mutation[position])}
+    end
+
+    gene_data.keys.each do |gene|
+      gene_data[gene].merge! get_gene_info gene
+    end
+
+    gene_data
+  end
+
 end
 
 if __FILE__ == $0
-  orig  = STDIN.read.split(/\n/).collect{|l| l.split(/\t/)}
-  p PhGx::GeneInfo.cancer4genes_anais(orig)
+#  orig  = STDIN.read.split(/\n/).collect{|l| l.split(/\t/)}
+  p PhGx.analyze_NGS('/home/mvazquezg/git/NGS/data/IRS/table.tsv')
 end
 

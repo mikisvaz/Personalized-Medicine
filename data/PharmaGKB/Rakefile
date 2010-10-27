@@ -21,7 +21,7 @@ end
 file :gene_drug => 'orig/relationships' do |t|
   data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Drug:/}, :native => 1, :extra => 3, :keep_empty => true)
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(Gene_Name Drug) * "\t"
+    f.puts "#" + ['Associated Gene Name', 'Drug'] * "\t"
     data.each do |gene, drug|
       f.puts "#{ gene }\t#{drug * "|"}"
     end
@@ -31,7 +31,7 @@ end
 file :gene_disease => 'orig/relationships' do |t|
   data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Disease:/}, :native => 1, :extra => 3, :keep_empty => true)
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(Gene_Name Disease) * "\t"
+    f.puts "#" + ['Associated Gene Name', 'Disease'] * "\t"
     data.each do |gene, disease|
       f.puts "#{ gene }\t#{disease * "|"}"
     end
@@ -41,7 +41,7 @@ end
 file :variants => 'orig/variants' do |t|
   data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [3,7,8,9,10,4,5], :keep_empty => true)
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(ID Gene_Name Drug Drug_Class Disease Curation Feature Evidence) * "\t"
+    f.puts "#" + ['Variant ID', 'Associated Gene Name', 'Drug', 'Drug_Class', 'Disease', 'Curation', 'Feature', 'Evidence'] * "\t"
     data.each do |gene, values|
       f.puts "#{ gene }\t#{values.collect{|v| v * "|"} * "\t"}"
     end
@@ -65,7 +65,7 @@ file :gene_pathway => 'orig/pathways' do |t|
   end
 
   File.open(t.name, 'w') do |f|
-    f.puts "#" + %w(ID Name Genes) * "\t"
+    f.puts "#" + ['Pathway ID',  'Name',  'Associated Gene Name'] * "\t"
     pathways.each do |pathway, info|
       next if info[:genes].nil?
       f.puts "#{ pathway }\t#{info[:name]}\t#{info[:genes] * "|"}"
