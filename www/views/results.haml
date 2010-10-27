@@ -1,6 +1,13 @@
 %h1 Genes and Drugs
+  
+= haml :_summary, :layout => false, :locals => {:ordered_genes => @ordered_genes}
 
 - @ordered_genes.each do |gene|
   %div.genecard{:id => gene * "_"}
     = haml :_gene, :layout => false, :locals => {:info_gene => @info[gene], :name => gene}
+
+
+:javascript
+  $('#summary_table').flexigrid({title:'Summary',height:300,striped:false,minwidth:100,usepager:true});
+
 

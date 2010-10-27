@@ -5,14 +5,68 @@ require 'phgx'
 require 'rbbt/sources/go'
 require 'rbbt/sources/entrez'
 
+
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
   list[0].zip(*list[1..-1])
 end
 
 helpers do
+
+  def matador_summary(matador_drugs)
+    if matador_drugs != nil  
+      join_hash_fields(matador_drugs).collect do |d|
+        name, score, annot, mscore, mannot = d
+        css_class = (mannot == 'DIRECT')?'red':'normal';
+        "<span class='#{css_class}'>#{name}</span> [M],"
+      end
+    else
+      []  
+    end  
+  end
+  
+  def pharmagkb_summary(pgkb_drugs)
+    if pgkb_drugs != nil
+      pgkb_drugs.collect do |d|
+        "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB], "
+      end
+    else
+      []  
+    end
+  end
+  
+  def kegg_summary(pathways)
+    if pathways != nil
+      pathways.collect do |k|
+        name = '<span '
+  
+        join_hash_fields(@anais[k]).each do |p|
+          cancer, score = p
+          css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
+          name += "class='#{ css_class }'>#{k} [#{ cancer } cancer]</span>"
+        end
+        "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{ name }</a>"
+      end
+    else
+      []
+    end  
+  end
+  
+  def cancer_genes_summary(cancers)
+    if cancers != nil
+      cancers.collect do |c|
+        "<span>#{c}</span>, "
+      end
+    else
+      []  
+    end
+  end
+
+
   def go_link(id)
+    puts id
     name = GO.id2name(id)
+    puts name
     
     join_hash_fields(@anais[id]).each do |p|
       cancer, score = p
@@ -39,10 +93,8 @@ helpers do
 
     "<a href='http://www.genome.jp/kegg-bin/show_pathway?#{id}'>#{ name }</a>"
   end
-end
-
-get '/' do
-  haml :main
+  
+  
 end
 
 post '/' do
@@ -84,10 +136,13 @@ post '/' do
 
   @entrez_descriptions = marshal_cache('entrez_desc', :genes => genes) do
     descriptions = {}
-    genes.each do |gene|
-      next if @entrez_codes[gene].nil? || @entrez_codes[gene] == "MISSING"
-      descriptions[gene] = Entrez.get_gene(@entrez_codes[gene]).description
+    Entrez.get_gene(@entrez_codes.values_at(*genes.compact)).each do |name, gene|
+      descriptions[name] = gene.description
     end
+    #genes.each do |gene|
+    #  next if @entrez_codes[gene].nil? || @entrez_codes[gene] == "MISSING"
+    #  descriptions[gene] = Entrez.get_gene(@entrez_codes[gene]).description
+    #end
 
     descriptions
   end

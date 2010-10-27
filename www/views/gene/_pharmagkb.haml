@@ -1,14 +1,14 @@
-- info = pharmagkb_info[0]
-- pharmagkb_info[1..-1].each do |list| info= info.zip(list) end
+/ - info = pharmagkb_info[0]
+/ - pharmagkb_info[1..-1].each do |list| info= info.zip(list) end
 
-%table
-  %thead
-    %tr
-      %th Name
-  %tbody
-    - info.each do |name|
-      %tr
-        %td= drug_link(name)
+/ %table
+/  %thead
+/    %tr
+/      %th Name
+/  %tbody
+/    - info.each do |name|
+/      %tr
+/        %td= drug_link(name)
 
 
 

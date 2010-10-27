@@ -1,14 +1,13 @@
 require 'rbbt/sources/organism'
 require 'rbbt/util/open'
 require 'cachehelper'
-require 'genecodis'
 require 'tsv'
 
 
 module PhGx
 
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
-  DATA_DIR = File.join(ROOT_DIR,'data')
+  DATA_DIR = '/data'
 
   def self.translate(orig, org = "Hsa", format = "Entrez Gene ID")
     index = TSV.index(File.join(Organism.datadir(org), 'identifiers'), :field => format, :persistence => true, :data_persistence => true)
@@ -137,7 +136,6 @@ module PhGx
     def self.drugs4genes(orig)
       genes = PhGx.translate(orig, 'Hsa', 'Associated Gene Name')
       data = TSV.new(PROTEIN_DRUG_FILE, :keep_empty => true, :persistence => true)
-
       PhGx.assign(orig, genes, data)
     end
 
