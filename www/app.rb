@@ -226,8 +226,6 @@ end
 
 
 get '/ajax/genecard' do 
-  p params
-  p params[:gene]
   gene = params[:gene].split(/_/)
   cookie      = session["genes"] ||= nil
  
@@ -260,6 +258,7 @@ post '/ajax/genes' do
   end
   
   #p summary_table(@info,page,rp,sortname,sortorder)  
+  content_type :json
   summary_table(@info,page,rp,sortname,sortorder)
 end
 
