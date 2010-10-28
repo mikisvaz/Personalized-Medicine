@@ -9,6 +9,8 @@ require 'json'
 
 enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
+$kegg_pathway_index = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :single => true)
+
 DATA_FILE=ARGV[0]
 
 def join_hash_fields(list)
@@ -155,15 +157,15 @@ helpers do
   
   def kegg_summary(pathways)
     return [] if pathways.nil?
-    pathways.collect do |k|
-      desc = k
+    pathways.collect do |code|
+      desc = $kegg_pathway_index[code]
       name = ''
-      join_hash_fields($anais[k]).each do |p|
-        cancer, type, score, desc = p
+      join_hash_fields($anais[code]).each do |p|
+        cancer, type, score, desc2 = p
         css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
         name += " <span class='#{ css_class }'>[#{ cancer } cancer]</span>"
       end
-      "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{k}'>#{desc} #{ name }</a>"
+      "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc} #{ name }</a>"
     end
   end
   
@@ -211,12 +213,14 @@ helpers do
   
   
 end
-
-def entrez_info(gene)
+def entrez(gene)
   i = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :persistence => true)
-  trans = i[gene].first
-  marshal_cache('entrez_info', trans) do
-    Entrez.get_gene(trans)
+  i[gene].first
+end
+def entrez_info(gene)
+  entrez = entrez(gene)
+  marshal_cache('entrez_info', entrez) do
+    Entrez.get_gene(entrez)
   end
 end
 
@@ -232,6 +236,7 @@ get '/ajax/genecard' do
   end
 
   locals = {
+    :entrez => entrez(gene), 
     :name => gene, 
     :gene_info => @info[gene],
     :description => entrez_info(gene).description,
@@ -259,14 +264,29 @@ post '/ajax/genes' do
 end
 
 get '/' do
-  cookie  = make_cookie(DATA_FILE)
+  file = case params[:file]
+         when 'Metastasis'
+         File.join(Sinatra::Application.root, '../data/IRS/table.tsv')
+         when 'No_Metastasis'
+         File.join(Sinatra::Application.root, '../data/LP2/table.tsv')
+         when 'Exclusive'
+         File.join(Sinatra::Application.root, '../data/Exclusive/table.tsv')
+         when 'Raquel'
+         File.join(Sinatra::Application.root, '../data/Raquel/raquel.txt')
+         else
+           file = DATA_FILE
+         end
+
+
+
+  cookie  = make_cookie(file)
   session["genes"] = cookie
 
   @info = marshal_cache('info', cookie) do
-    if DATA_FILE =~ /raquel/i
-      PhGx.analyze_Raquel(DATA_FILE)
+    if file =~ /raquel/i
+      PhGx.analyze_Raquel(file)
     else
-      PhGx.analyze_NGS(DATA_FILE)
+      PhGx.analyze_NGS(file)
     end
   end
 

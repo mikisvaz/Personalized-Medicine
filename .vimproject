@@ -103,11 +103,7 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
     _stitch.haml
    }
    stylesheets=stylesheets{
-    _base.sass
     app.sass
-    main.sass
-    rounded_corners.sass
-    screen.sass
    }
   }
   javascript=public/javascript{

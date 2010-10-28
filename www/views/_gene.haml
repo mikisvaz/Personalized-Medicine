@@ -1,13 +1,25 @@
 %h3== Gene: #{name.last}
 
-%dl
+%dl#gene_description
 
-  %dt Description
+  %dt 
+    Description
+    %a{ :target => "_blanl", :href => "http://www.ncbi.nlm.nih.gov/sites/entrez?Db=gene&Cmd=ShowDetailView&ordinalpos=1&itool=EntrezSystem2.PEntrez.Gene.Gene_ResultsPanel.Gene_RVDocSum&TermToSearch=#{entrez}"} Entrez Gene
+      
   %dd= description
 
   %dt Summary
   %dd= summary
 
+%dl#gene_matador
+  - gene_info[:Matador].each do |drug|
+    %dt Name
+    %dd= drug.first
+
+    %dt Info
+    %dd= drug[1]
+
+  
 
 -#%h3== Gene: #{name * ", "}
 -#/%p= @scores[name].inspect
