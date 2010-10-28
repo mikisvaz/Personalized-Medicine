@@ -1,4 +1,4 @@
-%h1 Genes and Drugs
+%h1 Personalized Medicine
 
 = haml :_summary, :layout => false
   
@@ -6,6 +6,7 @@
 /  %div.genecard{:id => gene * "_"}
 /    = haml :_gene, :layout => false, :locals => {:info_gene => @info[gene], :name => gene}
 
+#genecard
 
 :javascript
   $('#summary_table').flexigrid({
@@ -38,5 +39,6 @@
   }
   );   
 
+  genecard_href = '/ajax/genecard';
 
 

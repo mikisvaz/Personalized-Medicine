@@ -1,7 +1,6 @@
 NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass *.html *.pl" {
  bin=bin{
   gene2drugs.rb
-  trans.rb
  }
  lib=lib{
   phgx.rb
@@ -13,12 +12,10 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   test_tc_hash.rb
   test_tsv.rb
  }
- doc=doc {
  data=data {
-  cancer_genes.tsv
+  Rakefile
   Matador=Matador {
    Rakefile
-   test.rb
    orig=orig {
    }
   }
@@ -39,7 +36,7 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   }
   NCI=NCI{
    drugen.pl
-   }
+  }
   IRS=IRS {
    all.ensbl.txt
    cancer_all.txt
@@ -82,15 +79,20 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    Rakefile
   }
  }
-  tmp=tmp {
-  }
+ tmp=tmp {
  }
  webservice=webservice{
  }
+ data=data{
+ }
+
  www=www{
   app.rb
   views=views{
    layout.haml
+   _gene.haml
+   _summary.haml
+   results.haml
    gene=gene{
     _firedb.haml
     _matador.haml
@@ -100,9 +102,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
     _snp_go.haml
     _stitch.haml
    }
-   _gene.haml
-   main.haml
-   results.haml
    stylesheets=stylesheets{
     _base.sass
     app.sass
@@ -110,6 +109,9 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
     rounded_corners.sass
     screen.sass
    }
+  }
+  javascript=public/javascript{
+   app.js
   }
  }
 }

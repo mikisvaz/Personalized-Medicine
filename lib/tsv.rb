@@ -347,7 +347,7 @@ class TSV
 
   #{{{ Helpers
 
-  def self.index(file, options)
+  def self.index(file, options = {})
     opt_data = options.dup
     opt_index = options.dup
     opt_data.delete  :field

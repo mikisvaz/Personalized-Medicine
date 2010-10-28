@@ -110,7 +110,7 @@ helpers do
         row = {
           "id"=>gname,
           "cell"=>[
-            gname.values_at(2,1,0).reject{|name| name.nil? || name.empty?}.first,
+            genecard_trigger(gname, gname.values_at(2,1,0).reject{|name| name.nil? || name.empty?}.first),
             mutation[0],
             mutation[1],
             mutation[2],
@@ -131,6 +131,10 @@ helpers do
     
     data = {:page => page, :total => @info.size, :rows =>rows}
     data.to_json
+  end
+
+  def genecard_trigger(gname, text)
+    "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{gname * "_"}\");return(false);'>#{text}</a>"
   end
   
   def matador_summary(matador_drugs)
@@ -206,6 +210,36 @@ helpers do
   end
   
   
+end
+
+def entrez_info(gene)
+  i = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :persistence => true)
+  trans = i[gene].first
+  marshal_cache('entrez_info', trans) do
+    Entrez.get_gene(trans)
+  end
+end
+
+
+get '/ajax/genecard' do 
+  p params
+  p params[:gene]
+  gene = params[:gene].split(/_/)
+  cookie      = session["genes"] ||= nil
+ 
+  @info = marshal_cache('info',cookie) do
+    raise "Info should be preloaded"
+  end
+
+  locals = {
+    :name => gene, 
+    :gene_info => @info[gene],
+    :description => entrez_info(gene).description,
+    :summary => entrez_info(gene).summary,
+  }
+  
+  
+  haml :_gene, :layout => false, :locals => locals
 end
 
 post '/ajax/genes' do 
