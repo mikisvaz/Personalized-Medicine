@@ -78,7 +78,7 @@ helpers do
         row = {
           "id"=>gname,
           "cell"=>[
-            gname.last,
+            gname.values_at(2,1,0).reject{|name| name.nil? || name.empty?}.first,
             mutation[0],
             mutation[1],
             mutation[2],
@@ -86,7 +86,8 @@ helpers do
             mutation[4],
 
             mutation[5] ? mutation[5][1] : 'NO',
-            mutation[6] ? mutation[6][5] : 'NO',
+            mutation[6] ? mutation[6][4] : 'NO',
+            mutation[7] ? mutation[6][5] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
@@ -183,7 +184,6 @@ post '/ajax/genes' do
   sortorder   = params[:sortorder] ||= 'desc'
   cookie      = session["genes"] ||= nil
   
-  p cookie
   @info = marshal_cache('info',cookie) do
     raise "Info should be preloaded"
   end

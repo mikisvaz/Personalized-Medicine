@@ -278,7 +278,7 @@ module PhGx
      'Matador#Matador:protein_drug#zip',
      'PharmaGKB#PharmaGKB:gene_drug#zip',
      'NCI#NCI:gene_drug#zip|field[UniProt/SwissProt Accession]',
-     'KEGG_DRUG#KEGG:gene_drug#zip|intermediate[KEGG:gene_drug<Ensembl Gene ID><KEGG Gene ID>]',
+     'KEGG_DRUG#KEGG:gene_drug#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      'STITCH#STITCH:gene_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      #'SNP_GO#SNP_GO:snp_go.txt#zip|field[Mutation]',
@@ -286,15 +286,14 @@ module PhGx
      #'Polyphen#Polyphen:polyphen#zip',
      'Anais_cancer#CancerGenes:anais-annotations.txt#flatten',
    ].each do |db|
-     puts "Getting #{ db }"
-      key, path, options = db.match(/(.*?)#(.*?)#(.*)/).values_at(1,2,3)
-      name = path.match(/^(.*?)[:#]/)[1]
-      path = File.join(DATA_DIR,path.gsub(/:/,'/'))
+     key, path, options = db.match(/(.*?)#(.*?)#(.*)/).values_at(1,2,3)
+     name = path.match(/^(.*?)[:#]/)[1]
+       path = File.join(DATA_DIR,path.gsub(/:/,'/'))
 
 
-      info[key.to_sym] = get_db_info(gene, path, options.split('|'))
-    end
-    info
+     info[key.to_sym] = get_db_info(gene, path, options.split('|'))
+   end
+   info
   end
 
   def self.analyze_NGS(filename)
@@ -303,35 +302,38 @@ module PhGx
 
     data = TSV.new(filename, :native => 'Position1', :keep_empty => true)
 
-    genes    = data.slice(*gene_fields)
-    mutation = data.slice(*mutation_fields)
+    gene_names        = data.slice(*gene_fields)
+    mutations          = data.slice(*mutation_fields)
 
-    gene_data = TSV.new({})
 
     snp      = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :native => 'Mutation', :keep_empty => true)
     polyphen = TSV.new(File.join(DATA_DIR,'Polyphen','polyphen'), :native => 'id', :keep_empty => true)
     firedb   = TSV.new(File.join(DATA_DIR,'FireDB','firedb'), :native => 'Mutation', :keep_empty => true)
 
-    genes.each do |position, info|
-      next unless genes[position].flatten.compact.any?
-      mut_infos = TSV.zip_fields mutation[position]
-      mut_infos.collect! do |mut_info|
-        code = mut_info[2]
 
-        snp_info = snp[code] || [[""] * 5]
-        #mut_info << snp_info.flatten
-        
-        firedb_info = firedb[code] || [[""] * 7]
-        #mut_info << firedb_info.flatten
-        
-        poly_info = polyphen[code] || [[""] * 10]
-        #mut_info << poly_info.flatten
+    gene_data = TSV.new({})
+    unknown_genes = 0
+    data.keys.each do |position|
+      gene_name = gene_names[position].flatten
+      if gene_name.reject{|n| n.empty?}.empty?
+        gene_name = ["UNKNOWN-#{unknown_genes}"] * 3
+        unknown_genes += 1
       end
-      gene_data[genes[position].flatten] = {:Mutations => mut_infos}
-    end
+      gene_data[gene_name] ||= get_gene_info gene_name
 
-    gene_data.keys.each do |gene|
-      gene_data[gene].merge! get_gene_info gene
+      mutation_info = mutations[position].flatten
+      code = mutation_info[2]
+      snp_info = snp[code] || [[""] * snp.fields.length]
+      mutation_info << snp_info.flatten
+
+      firedb_info = firedb[code] || [[""] * firedb.fields.length]
+      mutation_info << firedb_info.flatten
+
+      poly_info = polyphen[code] || [[""] * polyphen.fields.length]
+      mutation_info << poly_info.flatten
+      
+      gene_data[gene_name][:Mutations] ||= []
+      gene_data[gene_name][:Mutations] << mutation_info
     end
 
     gene_data
