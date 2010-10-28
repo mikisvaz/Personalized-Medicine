@@ -182,10 +182,10 @@ class TSV
       @data = file
       return self
     when String === file && File.exists?(file)
-      @filename = file
+      @filename = File.expand_path file
       file = File.open(file)
     when File === file
-      @filename = file.path
+      @filename = File.expand_path file.path
     when String === file
       @filename = String
       file = StringIO.new(file)
@@ -368,6 +368,7 @@ class TSV
     end
   end
 end
+
 
 if __FILE__ == $0
 

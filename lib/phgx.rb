@@ -323,15 +323,17 @@ module PhGx
 
       mutation_info = mutations[position].flatten
       code = mutation_info[2]
+
       snp_info = snp[code] || [[""] * snp.fields.length]
       mutation_info << snp_info.flatten
 
+      poly_info = polyphen[code] || [[""] * polyphen.fields.length]
+      mutation_info << poly_info.flatten
+ 
       firedb_info = firedb[code] || [[""] * firedb.fields.length]
       mutation_info << firedb_info.flatten
 
-      poly_info = polyphen[code] || [[""] * polyphen.fields.length]
-      mutation_info << poly_info.flatten
-      
+     
       gene_data[gene_name][:Mutations] ||= []
       gene_data[gene_name][:Mutations] << mutation_info
     end

@@ -58,6 +58,38 @@ helpers do
           values[0]
         }.first
       end.collect{|p| p.first}.reverse   
+    when 'snp_go'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          values[5] ? (values[5][1] =~ /Disease/ ? 1 : -1) : 0
+        }.max
+      end.collect{|p| p.first}.reverse   
+    when 'firedb'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          values[7] ? (values[7][4] =~ /Y/ ? 1 : -1) : 0
+        }.max
+      end.collect{|p| p.first}.reverse   
+    when 'polyphen'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          case 
+          when values[6].nil? || values[6].empty?
+            0
+          when values[6][5] == 'benign'
+            -1
+          when values[6][5] == 'possibly damaging'
+            1
+          when values[6][5] == 'probably damaging'
+            2
+          else
+            puts values[6][5]
+            0
+          end
+        }.max
+      end.collect{|p| p.first}.reverse   
+
+
     when 'score'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
@@ -86,8 +118,8 @@ helpers do
             mutation[4],
 
             mutation[5] ? mutation[5][1] : 'NO',
-            mutation[6] ? mutation[6][4] : 'NO',
-            mutation[7] ? mutation[6][5] : 'NO',
+            mutation[6] ? mutation[6][5] : 'NO',
+            mutation[7] ? mutation[7][4] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
