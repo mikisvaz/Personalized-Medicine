@@ -34,16 +34,33 @@ helpers do
       genes = @info.sort_by do |key,value|
         (value[:KEGG] || []).size
       end.collect{|p| p.first}.reverse
-    
     when 'drugs'
       genes = @info.sort_by do |key,value|
         ((value[:PharmaGKB] || []) + (value[:Matador] || [])).size
       end.collect{|p| p.first}.reverse  
-      
     when 'cancers'
       genes = @info.sort_by do |key,value|
         (value[:Anais_cancer] || []).size
       end.collect{|p| p.first}.reverse   
+    when 'type'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          values[3]
+        }.sort.first
+      end.collect{|p| p.first}.reverse   
+    when 'chr'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          values[0]
+        }.first
+      end.collect{|p| p.first}.reverse   
+    when 'score'
+      genes = @info.sort_by do |key,value|
+        value[:Mutations].collect{|values| 
+          values[4].to_i
+        }.sort.last
+      end.collect{|p| p.first}.reverse   
+ 
     else
        genes   = info.keys.sort_by{|list| list[2]}
     end
@@ -53,13 +70,16 @@ helpers do
     for i in rstart..rend do
       gname = genes[i]
       gene_info = info[gname]
-      p gene_info
-      p gene_info[:Matador]
-      gene_info[:Mutations].each do |mutation|
+      (gene_info[:Mutations] || [["NO"] * 5]).each do |mutation|
         row = {
           "id"=>gname,
           "cell"=>[
-            gname.last,mutation[0],'3','4','5',
+            gname.last,
+            mutation[0],
+            mutation[1],
+            mutation[2],
+            mutation[3],
+            mutation[4],
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
             cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')
@@ -170,6 +190,7 @@ get '/' do
 
   p cookie
   @info = marshal_cache('info', cookie) do
+    #PhGx.analyze_Raquel(DATA_FILE)
     PhGx.analyze_NGS(DATA_FILE)
   end
 

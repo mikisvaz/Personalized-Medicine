@@ -317,10 +317,18 @@ module PhGx
     gene_data
   end
 
+  def self.analyze_Raquel(filename)
+    genes  = File.open(filename).read.split(/\n/).collect{|l| l.split(/\t/)}
+    gene_data = TSV.new({})
+    genes.each do |gene|
+      gene_data[gene] = get_gene_info gene
+    end
+    gene_data
+  end
+
 end
 
 if __FILE__ == $0
-#  orig  = STDIN.read.split(/\n/).collect{|l| l.split(/\t/)}
-  p PhGx.analyze_NGS('/home/mvazquezg/git/NGS/data/IRS/table.tsv')
+  p PhGx.analyze_Raquel '/home/mvazquezg/raquel.txt'
 end
 
