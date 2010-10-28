@@ -24,3 +24,4 @@ data/KEGG/genes
 data/KEGG/pathways
 data/STITCH/chemicals
 names.txt
+cache/

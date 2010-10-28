@@ -85,7 +85,8 @@ helpers do
             mutation[3],
             mutation[4],
 
-            mutation[5][1],
+            mutation[5] ? mutation[5][1] : 'NO',
+            mutation[6] ? mutation[6][5] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
@@ -196,7 +197,7 @@ get '/' do
   session["genes"] = cookie
 
   @info = marshal_cache('info', cookie) do
-    if DATA_FILE =~ /Raquel/
+    if DATA_FILE =~ /raquel/i
       PhGx.analyze_Raquel(DATA_FILE)
     else
       PhGx.analyze_NGS(DATA_FILE)

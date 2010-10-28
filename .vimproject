@@ -8,6 +8,12 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   tc_hash.rb
   tsv.rb
  }
+ test=test{
+  test_helper.rb
+  test_tc_hash.rb
+  test_tsv.rb
+ }
+ doc=doc {
  data=data {
   cancer_genes.tsv
   Matador=Matador {
@@ -76,7 +82,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    Rakefile
   }
  }
- doc=doc {
   tmp=tmp {
   }
  }

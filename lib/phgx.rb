@@ -8,6 +8,7 @@ module PhGx
 
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
   DATA_DIR = File.join(ROOT_DIR, 'data')
+  TSV.cachedir = File.join(ROOT_DIR, 'cache','tsv')
 
   def self.translate(orig, org = "Hsa", format = "Entrez Gene ID")
     index = TSV.index(File.join(Organism.datadir(org), 'identifiers'), :field => format, :persistence => true, :data_persistence => true)
@@ -281,13 +282,15 @@ module PhGx
      'STITCH#STITCH:gene_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      #'SNP_GO#SNP_GO:snp_go.txt#zip|field[Mutation]',
-     'FireDB#FireDB:firedb#zip',
-     'Polyphen#Polyphen:polyphen#zip',
+     #'FireDB#FireDB:firedb#zip',
+     #'Polyphen#Polyphen:polyphen#zip',
      'Anais_cancer#CancerGenes:anais-annotations.txt#flatten',
    ].each do |db|
+     puts "Getting #{ db }"
       key, path, options = db.match(/(.*?)#(.*?)#(.*)/).values_at(1,2,3)
       name = path.match(/^(.*?)[:#]/)[1]
       path = File.join(DATA_DIR,path.gsub(/:/,'/'))
+
 
       info[key.to_sym] = get_db_info(gene, path, options.split('|'))
     end
@@ -305,14 +308,24 @@ module PhGx
 
     gene_data = TSV.new({})
 
-    snp = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :native => 'Mutation', :keep_empty => true)
+    snp      = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :native => 'Mutation', :keep_empty => true)
+    polyphen = TSV.new(File.join(DATA_DIR,'Polyphen','polyphen'), :native => 'id', :keep_empty => true)
+    firedb   = TSV.new(File.join(DATA_DIR,'FireDB','firedb'), :native => 'Mutation', :keep_empty => true)
+
     genes.each do |position, info|
       next unless genes[position].flatten.compact.any?
       mut_infos = TSV.zip_fields mutation[position]
       mut_infos.collect! do |mut_info|
         code = mut_info[2]
-        new_info = snp[code] || [[""] * 5]
-        mut_info << new_info.flatten
+
+        snp_info = snp[code] || [[""] * 5]
+        #mut_info << snp_info.flatten
+        
+        firedb_info = firedb[code] || [[""] * 7]
+        #mut_info << firedb_info.flatten
+        
+        poly_info = polyphen[code] || [[""] * 10]
+        #mut_info << poly_info.flatten
       end
       gene_data[genes[position].flatten] = {:Mutations => mut_infos}
     end

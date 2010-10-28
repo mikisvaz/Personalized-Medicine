@@ -1,0 +1,5 @@
+
+Dir.glob('*/Rakefile') do |file|
+  dir = File.dirname(file)
+  `cd #{dir}; rake`
+end
