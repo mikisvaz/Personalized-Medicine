@@ -280,7 +280,7 @@ module PhGx
      'KEGG_DRUG#KEGG:gene_drug#zip|intermediate[KEGG:gene_drug<Ensembl Gene ID><KEGG Gene ID>]',
      'STITCH#STITCH:gene_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
-     'SNP_GO#SNP_GO:snp_go.txt#zip',
+     #'SNP_GO#SNP_GO:snp_go.txt#zip|field[Mutation]',
      'FireDB#FireDB:firedb#zip',
      'Polyphen#Polyphen:polyphen#zip',
      'Anais_cancer#CancerGenes:anais-annotations.txt#flatten',
@@ -305,9 +305,16 @@ module PhGx
 
     gene_data = TSV.new({})
 
+    snp = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :native => 'Mutation', :keep_empty => true)
     genes.each do |position, info|
       next unless genes[position].flatten.compact.any?
-      gene_data[genes[position].flatten] = {:Mutations => TSV.zip_fields(mutation[position])}
+      mut_infos = TSV.zip_fields mutation[position]
+      mut_infos.collect! do |mut_info|
+        code = mut_info[2]
+        new_info = snp[code] || [[""] * 5]
+        mut_info << new_info.flatten
+      end
+      gene_data[genes[position].flatten] = {:Mutations => mut_infos}
     end
 
     gene_data.keys.each do |gene|
@@ -329,6 +336,6 @@ module PhGx
 end
 
 if __FILE__ == $0
-  p PhGx.analyze_Raquel '/home/mvazquezg/raquel.txt'
+  p PhGx.analyze_NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
 end
 

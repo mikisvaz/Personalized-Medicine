@@ -30,6 +30,10 @@ helpers do
     rend    = rstart + rp.to_i
     
     case sortname
+    when 'genename'
+      genes = @info.sort_by do |key,value|
+        key.last || ""
+      end.collect{|p| p.first}.reverse
     when 'pathways'
       genes = @info.sort_by do |key,value|
         (value[:KEGG] || []).size
@@ -80,6 +84,9 @@ helpers do
             mutation[2],
             mutation[3],
             mutation[4],
+
+            mutation[5][1],
+
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
             cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')
@@ -188,10 +195,12 @@ get '/' do
   cookie  = make_cookie(DATA_FILE)
   session["genes"] = cookie
 
-  p cookie
   @info = marshal_cache('info', cookie) do
-    #PhGx.analyze_Raquel(DATA_FILE)
-    PhGx.analyze_NGS(DATA_FILE)
+    if DATA_FILE =~ /Raquel/
+      PhGx.analyze_Raquel(DATA_FILE)
+    else
+      PhGx.analyze_NGS(DATA_FILE)
+    end
   end
 
   haml :results

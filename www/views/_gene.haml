@@ -1,7 +1,7 @@
 %h3== Gene: #{name * ", "}
-%p= @scores[name].inspect
-%h4 Description
-%p= @entrez_descriptions[name]
+/%p= @scores[name].inspect
+/%h4 Description
+/%p= @entrez_descriptions[name]
 %dl
   %dt Mutations
   %dd
@@ -11,8 +11,8 @@
     = haml :"gene/_firedb", :layout => false, :locals => {:snp_info => info_gene[:FireDB]}
     %h4 Polyphen
     = haml :"gene/_polyphen", :layout => false, :locals => {:snp_info => info_gene[:Polyphen]}
-  %dt GO terms
-  %dd= (info_gene[:GO] || []).collect{|id| go_link(id)} * ", "
+/  %dt GO terms
+/  %dd= (info_gene[:GO] || []).collect{|id| go_link(id)} * ", "
   %dt KEGG Pathways
   %dd= (info_gene[:KEGG] || []).collect{|id| kegg_link(id)} * ", "
   %dt Cancers for which it was reported
