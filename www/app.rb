@@ -50,31 +50,31 @@ helpers do
       end.collect{|p| p.first}.reverse   
     when 'type'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] || []).collect{|values| 
           values[5] == 'Nonsynonymous' ? 1 : (values[5] == 'Synonymous' ? -1 : 0)
-        }.max
+        }.max || "NO"
       end.collect{|p| p.first}.reverse   
     when 'position'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] ||[]).collect{|values| 
           (values[0].to_i < 10 ? "0" << values[0] : values[0]) + values[1]
-        }.first
+        }.first || "NO"
       end.collect{|p| p.first}.reverse   
     when 'snp_go'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] ||[]).collect{|values| 
           values[7] ? (values[7][1] =~ /Disease/ ? 1 : -1) : 0
-        }.max
+        }.max || "NO"
       end.collect{|p| p.first}.reverse   
     when 'firedb'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] ||[]).collect{|values| 
           values[9] ? (values[9][4] =~ /Y/ ? 1 : -1) : 0
-        }.max
+        }.max || "NO"
       end.collect{|p| p.first}.reverse   
     when 'polyphen'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] ||[]).collect{|values| 
           case 
           when values[8].nil? || values[6].empty?
             0
@@ -88,15 +88,15 @@ helpers do
             puts values[8][5]
             0
           end
-        }.max
+        }.max || 0
       end.collect{|p| p.first}.reverse   
 
 
     when 'score'
       genes = @info.sort_by do |key,value|
-        value[:Mutations].collect{|values| 
+        (value[:Mutations] ||[]).collect{|values| 
           values[6].to_i
-        }.sort.last
+        }.sort.last || "NO"
       end.collect{|p| p.first}.reverse   
  
     else
