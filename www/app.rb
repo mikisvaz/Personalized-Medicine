@@ -51,41 +51,41 @@ helpers do
     when 'type'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
-          values[3]
-        }.sort.first
+          values[5] == 'Nonsynonymous' ? 1 : (values[5] == 'Synonymous' ? -1 : 0)
+        }.max
       end.collect{|p| p.first}.reverse   
-    when 'chr'
+    when 'position'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
-          values[0]
+          (values[0].to_i < 10 ? "0" << values[0] : values[0]) + values[1]
         }.first
       end.collect{|p| p.first}.reverse   
     when 'snp_go'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
-          values[5] ? (values[5][1] =~ /Disease/ ? 1 : -1) : 0
+          values[7] ? (values[7][1] =~ /Disease/ ? 1 : -1) : 0
         }.max
       end.collect{|p| p.first}.reverse   
     when 'firedb'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
-          values[7] ? (values[7][4] =~ /Y/ ? 1 : -1) : 0
+          values[9] ? (values[9][4] =~ /Y/ ? 1 : -1) : 0
         }.max
       end.collect{|p| p.first}.reverse   
     when 'polyphen'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
           case 
-          when values[6].nil? || values[6].empty?
+          when values[8].nil? || values[6].empty?
             0
-          when values[6][5] == 'benign'
+          when values[8][5] == 'benign'
             -1
-          when values[6][5] == 'possibly damaging'
+          when values[8][5] == 'possibly damaging'
             1
-          when values[6][5] == 'probably damaging'
+          when values[8][5] == 'probably damaging'
             2
           else
-            puts values[6][5]
+            puts values[8][5]
             0
           end
         }.max
@@ -95,7 +95,7 @@ helpers do
     when 'score'
       genes = @info.sort_by do |key,value|
         value[:Mutations].collect{|values| 
-          values[4].to_i
+          values[6].to_i
         }.sort.last
       end.collect{|p| p.first}.reverse   
  
@@ -113,15 +113,14 @@ helpers do
           "id"=>gname,
           "cell"=>[
             genecard_trigger(gname, gname.values_at(2,1,0).reject{|name| name.nil? || name.empty?}.first),
-            mutation[0],
-            mutation[1],
-            mutation[2],
-            mutation[3],
+            "#{mutation[0]}:#{mutation[1]}, #{mutation[2]}/#{mutation[3]}",
             mutation[4],
+            mutation[5],
+            mutation[6],
 
-            mutation[5] ? mutation[5][1] : 'NO',
-            mutation[6] ? mutation[6][5] : 'NO',
-            mutation[7] ? mutation[7][4] : 'NO',
+            mutation[7] ? mutation[7][1] : 'NO',
+            mutation[8] ? mutation[8][5] : 'NO',
+            mutation[9] ? mutation[9][4] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
