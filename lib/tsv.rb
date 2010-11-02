@@ -54,6 +54,7 @@ class TSV
     if Integer === field
       field
     else
+      raise FieldNotFoundError, "TSV has no field information" if fields.nil?
       fields.each_with_index{|f,i| return i if f =~ /#{Regexp.quote(field)}/}
       raise FieldNotFoundError, "Field #{ field } was not found"
     end
