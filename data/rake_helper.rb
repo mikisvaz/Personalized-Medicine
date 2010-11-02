@@ -9,7 +9,7 @@ def define_source_tasks(sources)
   sources.each do |name, url|
     FileUtils.mkdir SOURCE_DIR unless File.exists? SOURCE_DIR
     file File.join(SOURCE_DIR, name) do |t|
-      Open.write(t.name, Open.read(url, :cache => false))
+      Open.write(t.name, Open.read(url, :cache => false, :wget_options => "--no-check-certificate"))
     end
     if name =~ /.zip/
       file File.join(SOURCE_DIR, name.sub(/.zip$/,'')) =>  File.join(SOURCE_DIR, name) do |t|
