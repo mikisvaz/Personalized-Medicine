@@ -50,7 +50,7 @@ module PhGx
       path, from, to = intermediate.match(/(.*)<(.*)><(.*)>/).values_at(1,2,3)
       path = File.join(DATA_DIR,path.gsub(/:/,'/'))
       int = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :field => from, :persistence => true, :data_persistence => true)[gene]
-      translation = TSV.index(path, :field => to, :extra => from, :persistence => true, :data_persistence => true)[int]
+      translation = TSV.index(path, :field => to, :persistence => true, :data_persistence => true)[int]
     else
       translation = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :field => format, :persistence => true, :data_persistence => true)[gene]
     end
@@ -71,8 +71,9 @@ module PhGx
  
    [ 
      'Matador#Matador:protein_drug#zip',
-     'PharmaGKB#PharmaGKB:gene_drug#zip',
+     'PharmaGKB#PharmaGKB:gene_drug#zip|intermediate[PharmaGKB:genes<Ensembl Gene ID><PhGKB Gene ID>]',
      'NCI#NCI:gene_drug#zip',
+     'NCI_cancer#NCI:gene_cancer#zip',
      'KEGG_DRUG#KEGG:gene_drug#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      'STITCH#STITCH:gene_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
@@ -80,10 +81,10 @@ module PhGx
    ].each do |db|
      key, path, options = db.match(/(.*?)#(.*?)#(.*)/).values_at(1,2,3)
      name = path.match(/^(.*?)[:#]/)[1]
-       path = File.join(DATA_DIR,path.gsub(/:/,'/'))
-
+     path = File.join(DATA_DIR,path.gsub(/:/,'/'))
 
      info[key.to_sym] = get_db_info(gene, path, options.split('|'))
+     p info[key.to_sym]
    end
    info
   end

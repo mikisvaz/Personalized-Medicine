@@ -34,73 +34,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    Rakefile
   }
  }
- old_data=old_data {
-  Rakefile
-  Matador=Matador {
-   Rakefile
-   orig=orig {
-   }
-  }
-  PharmaGKB=PharmaGKB {
-   Rakefile
-   orig=orig {
-   }
-  }
-  STITCH=STITCH {
-   Rakefile
-   human.protein_chemical.txt
-   chemical.aliases.v2.0.tsv
-   chemical_chemical.links.v2.0.tsv
-   protein_chemical.links.v2.0.tsv
-  }
-  STRING=STRING {
-   Rakefile
-  }
-  NCI=NCI{
-   drugen.pl
-  }
-  IRS=IRS {
-   all.ensbl.txt
-   cancer_all.txt
-   gene_metadoc.txt
-   literature.txt
-   table.tsv
-   drugs=drugs {
-    Matador=Matador {
-     all.txt
-     damaging.txt
-    }
-    PharmaGKB=PharmaGKB {
-     all.txt
-     damaging.txt
-     not_tolerated.txt
-    }
-    STITCH=STITCH {
-     all.txt
-     all_symbols.txt
-    }
-   }
-   genes=genes {
-    name_entrez.txt
-    ENSP=ENSP {
-     all.txt
-     damaging.txt
-     not_tolerated.txt
-    }
-    entrez=entrez {
-     all.txt
-    }
-    names=names {
-     all.txt
-     damaging.txt
-     not_tolerated.txt
-    }
-   }
-  }
-  KEGG=KEGG{
-   Rakefile
-  }
- }
  tmp=tmp {
  }
  webservice=webservice{
@@ -111,9 +44,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  www=www{
   app.rb
   views=views{
-   layout.haml
+   _drugs.haml
    _gene.haml
    _summary.haml
+   _tabs.haml
+   layout.haml
    results.haml
    gene=gene{
     _firedb.haml
@@ -125,7 +60,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
     _stitch.haml
    }
    stylesheets=stylesheets{
+    _base.sass
     app.sass
+    main.sass
+    rounded_corners.sass
+    screen.sass
    }
   }
   javascript=public/javascript{

@@ -43,7 +43,7 @@ file :gene_drug => 'source/drugs' do |t|
       end
   end
 
-  Open.write(t.name, ['#KEGG Gene ID', 'KEGG Drug ID'] * "\t" + "\n" + pairs.collect{|gene, drugs| [gene, drugs * "|" ] * "\t"} * "\n")
+  Open.write(t.name, ['#KEGG Gene ID', 'KEGG Drug ID'] * "\t" + "\n" + pairs.collect{|gene, drugs| ["hsa:" + gene, drugs * "|" ] * "\t"} * "\n")
 end
 
 file :drugs => 'source/drugs' do |t|

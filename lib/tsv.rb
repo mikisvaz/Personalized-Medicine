@@ -51,11 +51,12 @@ class TSV
   end
 
   def self.field_pos(fields, field)
-    if Integer === field
+    case
+    when Integer === field
       field
     else
       raise FieldNotFoundError, "TSV has no field information" if fields.nil?
-      fields.each_with_index{|f,i| return i if f =~ /#{Regexp.quote(field)}/}
+      fields.each_with_index{|f,i| return i if f =~ /#{Regexp.quote(field)}/i}
       raise FieldNotFoundError, "Field #{ field } was not found"
     end
   end
@@ -301,7 +302,7 @@ class TSV
 
   def index(options = {})
     pos = nil
-    if options[:field] && key_field !~ /#{Regexp.quote options[:field]}/ && ! fields.nil? && fields.any?
+    if options[:field] && key_field !~ /#{Regexp.quote options[:field]}/i && ! fields.nil? && fields.any?
       pos = TSV.field_pos(fields, options[:field])
     end
 

@@ -17,7 +17,19 @@ file :gene_drug => 'source/gene_drug' do |t|
   Open.read(t.prerequisites.first).split(/\n/).each do |line|
     if line =~ /<HUGOGeneSymbol>(.*)<\/HUGOGeneSymbol>/
       if entry != nil
-        info[entry] = [entry, drugs * "|", concepts * "|", statements * "|", pmids * "|"] * "\t" 
+        drug_info = {}
+        TSV.zip_fields([drugs, concepts, statements, pmids]).each do |drug_fields|
+          drug, concept, statement, pmid = drug_fields
+          drug_info[drug] ||= {:statements => [], :pmids => []}
+          drug_info[drug][:concept] = concept
+          drug_info[drug][:statements] << statement
+          drug_info[drug][:pmids] << pmid
+        end
+        drugs = drug_info.keys
+        concepts   = drug_info.values_at(*drugs).collect{|v| v[:concept]}
+        statements = drug_info.values_at(*drugs).collect{|v| v[:statements] * ";;"}
+        pmids      = drug_info.values_at(*drugs).collect{|v| v[:pmids] * ";;"}
+        info[entry] = [entry, drugs * "|", concepts * "|", statements * "|", pmids * "|"] * "\t"
       end
       entry      = $1
       aliases    = []
@@ -69,7 +81,19 @@ file :gene_cancer => 'source/cancer_gene' do |t|
   Open.read(t.prerequisites.first).split(/\n/).each do |line|
     if line =~ /<HUGOGeneSymbol>(.*)<\/HUGOGeneSymbol>/
       if entry != nil
-        info[entry] = [entry, diseases * "|", concepts * "|", statements * "|", pmids * "|"] * "\t" 
+        disease_info = {}
+        TSV.zip_fields([diseases, concepts, statements, pmids]).each do |disease_fields|
+          disease, concept, statement, pmid = disease_fields
+          disease_info[disease] ||= {:statements => [], :pmids => []}
+          disease_info[disease][:concept] = concept
+          disease_info[disease][:statements] << statement
+          disease_info[disease][:pmids] << pmid
+        end
+        diseases = disease_info.keys
+        concepts   = disease_info.values_at(*diseases).collect{|v| v[:concept]}
+        statements = disease_info.values_at(*diseases).collect{|v| v[:statements] * ";;"}
+        pmids      = disease_info.values_at(*diseases).collect{|v| v[:pmids] * ";;"}
+        info[entry] = [entry, diseases * "|", concepts * "|", statements * "|", pmids * "|"] * "\t"
       end
       entry      = $1
       aliases    = []

@@ -30,3 +30,4 @@ names.txt
 cache/
 
 data/NCI/gene_cancer
+data/PharmaGKB/drugs

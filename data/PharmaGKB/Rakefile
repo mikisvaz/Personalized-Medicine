@@ -21,6 +21,14 @@ process_tsv :genes, 'genes',
   headers ['PhGKB Gene ID', 'Entrez Gene ID', 'Ensembl Gene Id', 'UniProt/SwissProt Accession', 'Long Name', 'Associated Gene Name']
 end
 
+process_tsv :drugs, 'drugs', 
+  :header_hash => "",
+  :extra => ['Name', 'DrugBank Id'],
+  :fix => proc{|l| l.gsub(/","/,'|').gsub(/"/,'').gsub(/,(\t|$)/,'\1')} do
+  headers ['PhGKB Drug ID', 'Name', 'DrugBank ID', ]
+end
+
+
 process_tsv :gene_drug, 'relationships',
   :select => proc{|l| l =~ /Gene:/ && l =~ /Drug:/}, 
   :native => 'Entity1_id', 
@@ -29,7 +37,7 @@ process_tsv :gene_drug, 'relationships',
   :fix => proc{|l| l.gsub(/Gene:|Drug:|Disease/,'')},
   :keep_empty => true do
 
-  headers ['Associated Gene Name', 'Drug']
+  headers ['PhGKB Gene ID', 'Drug']
 end
 
 process_tsv :gene_disease, 'relationships', 

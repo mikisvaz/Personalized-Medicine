@@ -9,7 +9,8 @@ require 'json'
 
 enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
-$kegg_pathway_index = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :single => true)
+$kegg_pathway_index = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :single => true, :persistence => true)
+$PharmaGKB_drug_index = TSV.new(File.join(Sinatra::Application.root, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
 
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
@@ -148,7 +149,7 @@ helpers do
   def pharmagkb_summary(pgkb_drugs)
     return [] if pgkb_drugs.nil?
     pgkb_drugs.collect do |d|
-        "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB]"
+        "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
     end
   end
   
@@ -191,10 +192,9 @@ helpers do
        out += matadorOut  
     end    
     if (pgkb_drugs)
-      p pgkb_drugs  
       pgkbOut = '<h3>PharmaGKB drugs (Full list)</h3><div>'
       pgkb_drugs.collect do |d|
-        pgkbOut += "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB]"
+        pgkbOut += "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
       end
 
        pgkbOut += '</div>'
