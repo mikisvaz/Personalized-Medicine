@@ -1,7 +1,6 @@
 doc
 data/*/source
 data/source
-data/CancerGenes/
 data/IRS/
 data/Matador/protein_drug
 data/NCI/gene_drug

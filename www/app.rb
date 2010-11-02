@@ -11,8 +11,6 @@ enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
 $kegg_pathway_index = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :single => true)
 
-DATA_FILE=ARGV[0]
-
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
   list[0].zip(*list[1..-1])
@@ -292,15 +290,15 @@ end
 get '/' do
   file = case params[:file]
          when 'Metastasis'
-         File.join(Sinatra::Application.root, '../data/IRS/table.tsv')
+           File.join(Sinatra::Application.root, '../data/IRS/table.tsv')
          when 'No_Metastasis'
-         File.join(Sinatra::Application.root, '../data/LP2/table.tsv')
+           File.join(Sinatra::Application.root, '../data/LP2/table.tsv')
          when 'Exclusive'
-         File.join(Sinatra::Application.root, '../data/Exclusive/table.tsv')
+           File.join(Sinatra::Application.root, '../data/Exclusive/table.tsv')
          when 'Raquel'
-         File.join(Sinatra::Application.root, '../data/Raquel/raquel.txt')
+           File.join(Sinatra::Application.root, '../data/Raquel/raquel.txt')
          else
-           file = DATA_FILE
+           File.join(Sinatra::Application.root, '../data/IRS/table.tsv')
          end
 
 
