@@ -1,0 +1,113 @@
+require '../rake_helper'
+
+define_source_tasks "cancer_gene.zip" => "https://gforge.nci.nih.gov/frs/download.php/6819/NCI_CancerIndex_allphases_disease.zip",
+  "gene_drug.zip" => "https://gforge.nci.nih.gov/frs/download.php/6821/NCI_CancerIndex_allphases_compound.zip"
+
+
+
+file :gene_drug => 'source/gene_drug' do |t|
+  entry      = nil
+  uniprot    = nil
+  drugs      = []
+  concepts   = []
+  statements = []
+  pmids      = []
+ 
+  info = {}
+  Open.read(t.prerequisites.first).split(/\n/).each do |line|
+    if line =~ /<HUGOGeneSymbol>(.*)<\/HUGOGeneSymbol>/
+      if entry != nil
+        info[entry] = [entry, drugs * "|", concepts * "|", statements * "|", pmids * "|"] * "\t" 
+      end
+      entry      = $1
+      aliases    = []
+      uniprot    = nil
+      drugs      = []
+      concepts   = []
+      statements = []
+      pmids      = []
+    end
+
+    if line =~ /<UniProtID>(.*)<\/UniProtID>/
+      uniprot = $1
+    end
+
+    if line =~ /<DrugTerm>(.*)<\/DrugTerm>/
+      drugs << $1 || ""
+    end
+
+    if line =~ /<NCIDrugConceptCode>(.*)<\/NCIDrugConceptCode>/
+      concepts << $1 || ""
+    end
+
+    if line =~ /<Statement>(.*)<\/Statement>/
+      statements << $1 || ""
+    end
+
+    if line =~ /<PubMedID>(.*)<\/PubMedID>/
+      pmids << $1 || ""
+    end
+  end
+
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + ['Associated Gene Name', 'Drugs', 'Drug Concepts', 'Statements', 'PMIDS'] * "\t"
+    info.each do |entry, line|
+      f.puts line
+    end
+  end
+end
+
+file :gene_cancer => 'source/cancer_gene' do |t|
+  entry      = nil
+  uniprot    = nil
+  diseases   = []
+  concepts   = []
+  statements = []
+  pmids      = []
+ 
+  info = {}
+  Open.read(t.prerequisites.first).split(/\n/).each do |line|
+    if line =~ /<HUGOGeneSymbol>(.*)<\/HUGOGeneSymbol>/
+      if entry != nil
+        info[entry] = [entry, diseases * "|", concepts * "|", statements * "|", pmids * "|"] * "\t" 
+      end
+      entry      = $1
+      aliases    = []
+      uniprot    = nil
+      diseases   = []
+      concepts   = []
+      statements = []
+      pmids      = []
+    end
+
+    if line =~ /<UniProtID>(.*)<\/UniProtID>/
+      uniprot = $1
+    end
+
+    if line =~ /<MatchedDiseaseTerm>(.*)<\/MatchedDiseaseTerm>/
+      diseases << $1 || ""
+    end
+
+    if line =~ /<NCIDiseaseConceptCode>(.*)<\/NCIDiseaseConceptCode>/
+      concepts << $1 || ""
+    end
+
+    if line =~ /<Statement>(.*)<\/Statement>/
+      statements << $1 || ""
+    end
+
+    if line =~ /<PubMedID>(.*)<\/PubMedID>/
+      pmids << $1 || ""
+    end
+  end
+
+  File.open(t.name, 'w') do |f|
+    f.puts "#" + ['Associated Gene Name', 'Diseases', 'Disease Concepts', 'Statements', 'PMIDS'] * "\t"
+    info.each do |entry, line|
+      f.puts line
+    end
+  end
+end
+
+add_to_defaults [:gene_cancer, :gene_drug]
+

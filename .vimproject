@@ -30,6 +30,9 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   STRING=STRING{
    Rakefile
   }
+  NCI=NCI{
+   Rakefile
+  }
  }
  old_data=old_data {
   Rakefile

@@ -72,7 +72,7 @@ module PhGx
    [ 
      'Matador#Matador:protein_drug#zip',
      'PharmaGKB#PharmaGKB:gene_drug#zip',
-     'NCI#NCI:gene_drug#zip|field[UniProt/SwissProt Accession]',
+     'NCI#NCI:gene_drug#zip',
      'KEGG_DRUG#KEGG:gene_drug#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      'STITCH#STITCH:gene_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
