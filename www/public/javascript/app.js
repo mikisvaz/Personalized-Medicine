@@ -3,7 +3,8 @@ function update_genecard(gene){
       url : genecard_href,
       data : {gene : gene},
       success : function(response){
-        $('#genecard').html(response)
+        $('#genecard').html(response);
+        $('#tabs').tabs();
     }})
     return false;
 }

@@ -7,10 +7,6 @@
 
 = haml :_summary, :layout => false
   
-/- @info.keys.sort.each do |gene|
-/  %div.genecard{:id => gene * "_"}
-/    = haml :_gene, :layout => false, :locals => {:info_gene => @info[gene], :name => gene}
-
 #genecard
 
 :javascript
@@ -40,10 +36,7 @@
   useRp: true,
   rp: 15,
   showTableToggleBtn: false,
-  height: 400,
+  height: 300,
   nowrap: false
   }
-  );   
-
-
-
+  );
