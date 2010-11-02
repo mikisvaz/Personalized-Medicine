@@ -103,7 +103,7 @@ class TSV
 
       if first_line
         first_line = false
-        header_line = header_fields.nil? && line =~ /^#{options[:header_hash]}/
+        header_line = line =~ /^#{options[:header_hash]}/
 
         if header_line
           header_fields    = parse_fields(line, options[:sep])

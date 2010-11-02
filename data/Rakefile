@@ -1,6 +1,8 @@
 
-Dir.glob('*/Rakefile') do |file|
-  dir = File.dirname(file)
-  puts "Updating #{ dir }"
-  `cd #{dir}; rake`
+task :default do
+  Dir.glob('*/Rakefile') do |file|
+    dir = File.dirname(file)
+    puts "Updating #{ dir }"
+    `cd #{dir}; rake`
+  end
 end

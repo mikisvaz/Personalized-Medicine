@@ -140,4 +140,3 @@ file :disease_pathway => 'source/pathways' do |t|
 end
 
 add_to_defaults [:gene_pathway, :drug_pathway, :disease_pathway]
-p $__files
