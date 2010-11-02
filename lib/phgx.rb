@@ -84,7 +84,6 @@ module PhGx
      path = File.join(DATA_DIR,path.gsub(/:/,'/'))
 
      info[key.to_sym] = get_db_info(gene, path, options.split('|'))
-     p info[key.to_sym]
    end
    info
   end

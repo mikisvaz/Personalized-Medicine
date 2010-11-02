@@ -84,7 +84,6 @@ helpers do
           when values[8][5] == 'probably damaging'
             2
           else
-            puts values[8][5]
             0
           end
         }.max || 0
@@ -206,9 +205,7 @@ helpers do
 
 
   def go_link(id)
-    puts id
     name = GO.id2name(id)
-    puts name
     
     join_hash_fields(@anais[id]).each do |p|
       cancer, score = p
