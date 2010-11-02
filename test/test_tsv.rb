@@ -77,6 +77,21 @@ row2    A    B    Id3
     end
   end
 
+  def test_extra
+    content =<<-EOF
+#Id    ValueA    ValueB    OtherID
+row1    a|aa|aaa    b    Id1|Id2
+row2    A    B    Id3
+    EOF
+
+    TmpFile.with_file(content) do |filename|
+      tsv = TSV.new(File.open(filename), :sep => /\s+/, :native => "OtherID", :extra => 2)
+      assert_equal ["b"], tsv["Id2"][0]
+      tsv = TSV.new(File.open(filename), :sep => /\s+/, :native => "OtherID", :extra => 'ValueB')
+      assert_equal ["b"], tsv["Id2"][0]
+    end
+  end
+
   def test_case
     content =<<-EOF
 #Id    ValueA    ValueB    OtherID

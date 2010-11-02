@@ -1,24 +1,15 @@
-require 'rbbt/util/open'
+require '../rake_helper'
 
-data_files = {
-  "matador" => "http://matador.embl.de/media/download/matador.tsv.gz"
-}
+define_source_tasks "matador" => "http://matador.embl.de/media/download/matador.tsv.gz"
 
-data_files.each do |name, url|
-  FileUtils.mkdir 'orig' unless File.exists? 'orig'
-  file File.join('orig', name) do |t|
-    Open.write(t.name, Open.read(url, :cache => false))
-  end
+
+process_tsv :protein_drug, 'matador',
+  :native  => 3, 
+  :fix     => lambda{|l| l.sub(/9606./,'')}, 
+  :extra   => [1,7,8,9,10,11,12], 
+  :header_hash => "",
+  :keep_empty => true do 
+
+  headers ['Ensembl Protein ID', 'Chemical', 'Score', 'Annotation', 'Mesh_Score', 'Mesh_Annotation', 'Matador_Score', 'Matador_Annotation']
 end
 
-file :protein_drug => 'orig/matador' do |t|
-  data = Open.to_hash(t.prerequisites.first, :native => 3, :fix => lambda{|l| l.sub(/9606./,'')}, :extra => [1,7,8,9,10,11,12], :keep_empty => true)
-  File.open(t.name, 'w') do |f|
-    f.puts "#" + (['Ensembl Protein ID'] + %w(Chemical Score Annotation Mesh_Score Mesh_Annotation Matador_Score Matador_Annotation)) * "\t"
-    data.each do |gene, values|
-      f.puts "#{ gene }\t#{values.collect{|v| v * "|" } * "\t"}"
-    end
-  end
-end
-
-task :default => [:protein_drug]

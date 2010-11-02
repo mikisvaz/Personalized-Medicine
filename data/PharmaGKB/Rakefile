@@ -1,54 +1,69 @@
 require 'rbbt/util/open'
+require '../rake_helper'
 
-data_files = {
-  "genes" => "http://www.pharmgkb.org/commonFileDownload.action?filename=genes.zip",
-  "drugs" => "http://www.pharmgkb.org/commonFileDownload.action?filename=drugs.zip",
-  "diseases" => "http://www.pharmgkb.org/commonFileDownload.action?filename=diseases.zip",
-  "relationships" => "http://www.pharmgkb.org/commonFileDownload.action?filename=relationships.zip",
-  "variants" => "http://www.pharmgkb.org/commonFileDownload.action?filename=variantAnnotations.zip",
-  "pathways" => "http://www.pharmgkb.org/commonFileDownload.action?filename=pathways-tsv.zip"
-}
+define_source_tasks "genes.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=genes.zip",
+  "drugs.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=drugs.zip",
+  "diseases.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=diseases.zip",
+  "relationships.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=relationships.zip",
+  "variants.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=variantAnnotations.zip",
+  "pathways.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=pathways-tsv.zip"
+ 
 
-data_files.each do |name, url|
-  FileUtils.mkdir 'orig' unless File.exists? 'orig'
-  file File.join('orig', name) do |t|
-    Open.write(t.name + '.zip', Open.read(url, :cache => false))
-    `unzip -p #{t.name + '.zip'} > #{ t.name }`
-    rm t.name + '.zip'
-  end
+process_tsv :diseases, 'diseases', 
+  :header_hash => "",
+  :fix => proc{|l| l.gsub(/","/,'|').gsub(/"/,'').gsub(/,(\t|$)/,'\1')} do
+  headers ['PhGKB Disease ID']
 end
 
-file :gene_drug => 'orig/relationships' do |t|
-  data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Drug:/}, :native => 1, :extra => 3, :keep_empty => true)
+process_tsv :genes, 'genes', 
+  :header_hash => "",
+  :fix => proc{|l| l.gsub(/","/,'|').gsub(/"/,'').gsub(/,(\t|$)/,'\1')} do
+  headers ['PhGKB Gene ID', 'Entrez Gene ID', 'Ensembl Gene Id', 'UniProt/SwissProt Accession', 'Long Name', 'Associated Gene Name']
+end
+
+process_tsv :gene_drug, 'relationships',
+  :select => proc{|l| l =~ /Gene:/ && l =~ /Drug:/}, 
+  :native => 'Entity1_id', 
+  :extra => ['Entity2_id','Relationship'], 
+  :header_hash => "",
+  :fix => proc{|l| l.gsub(/Gene:|Drug:|Disease/,'')},
+  :keep_empty => true do
+
+  headers ['Associated Gene Name', 'Drug']
+end
+
+process_tsv :gene_disease, 'relationships', 
+  :select => proc{|l| l =~ /Gene:/ && l =~ /Disease:/}, 
+  :native => 1, 
+  :extra => 3, 
+  :header_hash => "",
+  :fix => proc{|l| l.gsub(/Gene:|Drug:|Disease/,'')},
+  :keep_empty => true do
+
+  headers ['PhGKB Gene ID', 'PhGKB Disease ID']
+end
+
+process_tsv :variants, 'variants', 
+  :native => 1, 
+  :extra => [3,7,8,9,10,4,5], 
+  :header_hash => "",
+  :fix => proc{|l| l.gsub(/Gene:|Drug:|Disease/,'')},
+  :keep_empty => true do
+
+  headers ['Variant ID', 'Associated Gene Name', 'Drug', 'Drug_Class', 'Disease', 'Curation', 'Feature', 'Evidence']
+end
+
+file :pathways => 'source/pathways' do |t|
   File.open(t.name, 'w') do |f|
-    f.puts "#" + ['Associated Gene Name', 'Drug'] * "\t"
-    data.each do |gene, drug|
-      f.puts "#{ gene }\t#{drug * "|"}"
+    f.puts "#" + ['PhGKB Pathway ID','Name','Source'] * "\t"
+    Open.read(t.prerequisites.first).split(/\n/).each do |line|
+      next unless line =~ /(PA\d+): (.*) - \((.*)\)/
+      f.puts [$1,$2,$3] * "\t"
     end
   end
 end
 
-file :gene_disease => 'orig/relationships' do |t|
-  data = Open.to_hash(t.prerequisites.first, :exclude => proc{|l| l !~ /Gene:/ || l !~ /Disease:/}, :native => 1, :extra => 3, :keep_empty => true)
-  File.open(t.name, 'w') do |f|
-    f.puts "#" + ['Associated Gene Name', 'Disease'] * "\t"
-    data.each do |gene, disease|
-      f.puts "#{ gene }\t#{disease * "|"}"
-    end
-  end
-end
-
-file :variants => 'orig/variants' do |t|
-  data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [3,7,8,9,10,4,5], :keep_empty => true)
-  File.open(t.name, 'w') do |f|
-    f.puts "#" + ['Variant ID', 'Associated Gene Name', 'Drug', 'Drug_Class', 'Disease', 'Curation', 'Feature', 'Evidence'] * "\t"
-    data.each do |gene, values|
-      f.puts "#{ gene }\t#{values.collect{|v| v * "|"} * "\t"}"
-    end
-  end
-end
-
-file :gene_pathway => 'orig/pathways' do |t|
+file :gene_pathway => 'source/pathways' do |t|
   pathways = {}
   last_pathway = nil
 
@@ -73,7 +88,7 @@ file :gene_pathway => 'orig/pathways' do |t|
   end
 end
 
-file :drug_pathway => 'orig/pathways' do |t|
+file :drug_pathway => 'source/pathways' do |t|
   pathways = {}
   last_pathway = nil
 
@@ -99,7 +114,7 @@ file :drug_pathway => 'orig/pathways' do |t|
 end
 
 
-file :disease_pathway => 'orig/pathways' do |t|
+file :disease_pathway => 'source/pathways' do |t|
   pathways = {}
   last_pathway = nil
 
@@ -124,6 +139,5 @@ file :disease_pathway => 'orig/pathways' do |t|
   end
 end
 
-
-
-task :default => [:variants, :gene_disease, :gene_drug, :gene_pathway, :drug_pathway, :disease_pathway]
+add_to_defaults [:gene_pathway, :drug_pathway, :disease_pathway]
+p $__files

@@ -85,10 +85,11 @@ class TSV
       :flatten          => false,
       :keep_empty       => false,
       :case_insensitive => false,
+      :header_hash  => '#' ,
       :persistence_file => nil
     
 
-    options[:extra]   = [options[:extra]] if options[:extra] && ! Array === options[:extra]
+    options[:extra]   = [options[:extra]] if options[:extra] != nil && ! (Array === options[:extra])
     options[:flatten] = true if options[:single]
 
     # Open data store
@@ -100,13 +101,29 @@ class TSV
     extra_pos     = nil
     each_line(file){|line|
 
-      # Get header file if present
-      if header_fields.nil? && line =~ /^#/ && first_line
-        header_fields    = parse_fields(line, options[:sep])
-        header_fields[0] = header_fields[0][1..-1] # Remove initial hash character
-        next
+      if first_line
+        first_line = false
+        header_line = header_fields.nil? && line =~ /^#{options[:header_hash]}/
+
+        if header_line
+          header_fields    = parse_fields(line, options[:sep])
+          header_fields[0] = header_fields[0][(0 + options[:header_hash].length)..-1] # Remove initial hash character
+        end
+
+        id_pos = field_pos(header_fields, options[:native])
+
+        if options[:extra].nil?
+          parts = parse_fields(line, options[:sep])
+          extra_pos = (0..(parts.length - 1 )).to_a
+          extra_pos.delete(id_pos) 
+        else
+          extra_pos = options[:extra].collect{|pos| field_pos(header_fields, pos) }
+        end
+
+        next if header_line
       end
-      first_line = false
+
+      # Get header file if present
       
       # Select and fix lines
       next if ! options[:exclude].nil? &&   options[:exclude].call(line)
@@ -119,25 +136,17 @@ class TSV
       parts = parse_fields(line, options[:sep])
 
       # Get id field
-      id_pos = field_pos(header_fields, options[:native])
       next if parts[id_pos].nil? || parts[id_pos].empty?
       ids    = parse_fields(parts[id_pos], options[:sep2])
       ids.collect!{|id| id.downcase } if options[:case_insensitive]
 
       # Get extra fields
-      if options[:extra].nil?
-        extra_pos = (0..(parts.length - 1 )).to_a
-        extra_pos.delete(id_pos) 
-      else
-        extra_pos = options[:extra].collect{|pos| field_pos(header_fields, pos) - 1}
-      end
       extra = parts.values_at(*extra_pos)
 
       main_entry = ids.shift
       ids.each do |id|
         data[id] = "__Ref:#{main_entry}"
       end
-
 
       case
       when options[:single]
@@ -148,6 +157,9 @@ class TSV
         data[main_entry] = data[main_entry] + values
       else
         entry = data[main_entry] || []
+        while entry =~ /__Ref:(.*)/ do
+          entry = data[$1]
+        end
         extra.each_with_index do |value, i|
           next if (value.nil? || value.empty?) && ! options[:keep_empty]
           fields = parse_fields(value, options[:sep2])

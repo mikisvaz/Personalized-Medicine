@@ -1,6 +1,6 @@
 doc
-data/*/orig
-data/orig
+data/*/source
+data/source
 data/CancerGenes/
 data/IRS/
 data/Matador/protein_drug
@@ -11,6 +11,10 @@ data/PharmaGKB/gene_disease
 data/PharmaGKB/gene_drug
 data/PharmaGKB/gene_pathway
 data/PharmaGKB/variants
+data/PharmaGKB/diseases
+data/PharmaGKB/genes
+data/PharmaGKB/pathways
+data/STITCH/protein_chemical
 data/STITCH/chemical.aliases.v2.0.tsv
 data/STITCH/chemical_chemical.links.v2.0.tsv
 data/STITCH/gene_chemical
@@ -25,3 +29,4 @@ data/KEGG/pathways
 data/STITCH/chemicals
 names.txt
 cache/
+

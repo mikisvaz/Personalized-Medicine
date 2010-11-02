@@ -13,6 +13,21 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   test_tsv.rb
  }
  data=data {
+  rake_helper.rb
+  Matador=Matador{
+   Rakefile
+  }
+  PharmaGKB=PharmaGKB{
+   Rakefile
+  }
+  KEGG=KEGG{
+   Rakefile
+  }
+  STITCH=STITCH{
+   Rakefile
+  }
+ }
+ old_data=old_data {
   Rakefile
   Matador=Matador {
    Rakefile

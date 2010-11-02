@@ -1,35 +1,24 @@
 require 'rbbt/util/open'
+require '../rake_helper'
 
-data_files = {
-  "protein_chemicals" => "http://stitch.embl.de:8080/download/protein_chemical.links.v2.0.tsv.gz",
-  "chemicals" => "http://stitch.embl.de:8080/download/chemical.aliases.v2.0.tsv.gz",
-}
+define_source_tasks "protein_chemicals" => "http://stitch.embl.de:8080/download/protein_chemical.links.v2.0.tsv.gz",
+  "chemicals" => "http://stitch.embl.de:8080/download/chemical.aliases.v2.0.tsv.gz"
 
-data_files.each do |name, url|
-  FileUtils.mkdir 'orig' unless File.exists? 'orig'
-  file File.join('orig', name) do |t|
-    Open.write(t.name, Open.read(url, :cache => false))
-  end
+process_tsv :protein_chemical, 'protein_chemicals',
+  :native => 1,
+  :exclude => lambda{|l| l !~ /9606\./}, 
+  :fix => lambda{|l| l.sub(/9606\./,'')},
+  :keep_empty => true do
+
+  headers ['Ensembl Protein ID', 'Chemical', 'Score']
 end
 
-file :gene_chemical => 'orig/protein_chemicals' do |t|
-  data = Open.to_hash(t.prerequisites.first, :native => 1, :extra => [0,2], :exclude => lambda{|l| l !~ /9606\./}, :keep_empty => true)
-  File.open(t.name, 'w') do |f|
-    f.puts "#" + ['Ensembl Protein ID', 'Chemical Score'] * "\t"
-    data.each do |gene, values|
-      f.puts "#{ gene.sub(/9606\./,'') }\t#{values.collect{|v| v * "|"} * "\t" }"
-    end
-  end
+process_tsv :chemicals, 'protein_chemicals',
+  :select => lambda{|l| $chemicals.include?(l.match(/(.*?)\t/)[1]) }, 
+  :native => 0 do
+
+  $chemicals = TSV.new('protein_chemical', :native => 1).keys
+
+  headers ['Ensembl Protein ID', 'Chemical', 'Score']
 end
 
-file :chemicals => ['gene_chemical', 'orig/chemicals'] do |t|
-  chemicals = Open.to_hash(t.prerequisites.first, :native => 2).keys
-  File.open(t.name, 'w') do |f|
-    File.open(t.prerequisites.last).read.split(/\n/).each do |line|
-      next unless chemicals.include? line.split(/\t/).first
-      f.puts line
-    end
-  end
-end
-
-task :default => [:gene_chemical, :chemicals]
