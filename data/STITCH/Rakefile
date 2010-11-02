@@ -13,12 +13,12 @@ process_tsv :protein_chemical, 'protein_chemicals',
   headers ['Ensembl Protein ID', 'Chemical', 'Score']
 end
 
-process_tsv :chemicals, 'protein_chemicals',
-  :select => lambda{|l| $chemicals.include?(l.match(/(.*?)\t/)[1]) }, 
-  :native => 0 do
+#process_tsv :chemicals, 'protein_chemicals',
+#  :select => lambda{|l| $chemicals.include?(l.match(/(.*?)\t/)[1]) }, 
+#  :native => 0 do
 
-  $chemicals = TSV.new('protein_chemical', :native => 1).keys
+#  $chemicals = TSV.new('protein_chemical', :native => 1).keys
 
-  headers ['Ensembl Protein ID', 'Chemical', 'Score']
-end
+#  headers ['Ensembl Protein ID', 'Chemical', 'Score']
+#end
 
