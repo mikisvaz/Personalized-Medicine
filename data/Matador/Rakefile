@@ -6,10 +6,10 @@ define_source_tasks "matador" => "http://matador.embl.de/media/download/matador.
 process_tsv :protein_drug, 'matador',
   :native  => 3, 
   :fix     => lambda{|l| l.sub(/9606./,'')}, 
-  :extra   => [1,7,8,9,10,11,12], 
+  :extra   => [1,0,7,8,9,10,11,12], 
   :header_hash => "",
   :keep_empty => true do 
 
-  headers ['Ensembl Protein ID', 'Chemical', 'Score', 'Annotation', 'Mesh_Score', 'Mesh_Annotation', 'Matador_Score', 'Matador_Annotation']
+  headers ['Ensembl Protein ID', 'Chemical', 'Matador ID', 'Score', 'Annotation', 'Mesh_Score', 'Mesh_Annotation', 'Matador_Score', 'Matador_Annotation']
 end
 

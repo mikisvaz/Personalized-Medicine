@@ -139,9 +139,9 @@ helpers do
   def matador_summary(matador_drugs)
     return [] if matador_drugs.nil?
     matador_drugs.collect do |d|
-      name, score, annot, mscore, mannot = d
+      name, id, score, annot, mscore, mannot = d
       css_class = (mannot == 'DIRECT')?'red':'normal';
-      "<span class='#{css_class}'>#{name}</span> [M]"
+      "<a target='_blank' href='http://matador.embl.de/drugs/#{id}/'>#{name}</a> [M]"
     end  
   end
   

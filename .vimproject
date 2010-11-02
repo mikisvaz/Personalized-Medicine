@@ -40,7 +40,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  }
  data=data{
  }
-
  www=www{
   app.rb
   views=views{
