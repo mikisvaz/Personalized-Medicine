@@ -177,6 +177,34 @@ helpers do
       []  
     end
   end
+  
+  def drug_details_summary(matador_drugs,pgkb_drugs)
+    return '' if (matador_drugs.nil? && pgkb_drugs.nil?)
+
+    out =  ''
+    if (matador_drugs)
+      matadorOut = '<h3>MATADOR drugs (Full list)</h3><div>'
+      matador_drugs.collect do |d|
+        name, score, annot, mscore, mannot = d
+        css_class = (mannot == 'DIRECT')?'red':'normal';
+        matadorOut += "<span class='#{css_class}'>#{name}</span> [M] "
+      end
+       matadorOut += '</div>'
+       out += matadorOut  
+    end    
+    if (pgkb_drugs)
+      p pgkb_drugs  
+      pgkbOut = '<h3>PharmaGKB drugs (Full list)</h3><div>'
+      pgkb_drugs.collect do |d|
+        pgkbOut += "<a target='_blank' href='http://www.pharmgkb.org/search/search.action?typeFilter=Drug&exactMatch=true&query=#{d}'>#{d}</a> [PGKB]"
+      end
+
+       pgkbOut += '</div>'
+       out += pgkbOut  
+    end    
+
+    out     
+  end
 
 
   def go_link(id)
@@ -241,7 +269,7 @@ get '/ajax/genecard' do
   }
   
   
-  haml :_gene, :layout => false, :locals => locals
+  haml :_tabs, :layout => false, :locals => locals
 end
 
 post '/ajax/genes' do 
