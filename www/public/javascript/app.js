@@ -8,3 +8,10 @@ function update_genecard(gene){
     }})
     return false;
 }
+
+function expand_field(code){
+  var link = $('a#' + code);
+  var content = unescape(link.attr('value'));
+  link.parent('div').html(content);
+}
+

@@ -7,6 +7,7 @@ require 'rbbt/sources/entrez'
 require 'digest/md5'
 require 'json'
 require 'spreadsheet'
+require 'cgi'
 
 enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
@@ -164,16 +165,27 @@ helpers do
             mutation[9] ? mutation[9][1] : 'NO',
             mutation[11] ? mutation[11][4] : 'NO',
 
-            kegg_summary(gene_info[:KEGG]).join(', '),
-            (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
-            cancer_genes_summary(info[gname][:Anais_cancer]).join(', '),
-            nci_diseases_summary(info[gname][:NCI_cancer]).join(', ')
+            list_summary(kegg_summary(gene_info[:KEGG])),
+            list_summary((matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB]))),
+            mutation[8] || "",
+            list_summary(cancer_genes_summary(info[gname][:Anais_cancer])),
+            list_summary(nci_diseases_summary(info[gname][:NCI_cancer]))
         ]}
         rows << row
       end
     end
     
     rows
+  end
+
+  def list_summary(list)
+    code = Digest::MD5.hexdigest(list.inspect)
+    if list.length < 3
+      list * ', '
+    else
+      list[0..1] * ', ' + ', ' +
+      "<a id='#{code}' class=expand href='' value='#{CGI.escapeHTML(list * ', ').gsub(/'/,'"')}' onclick='expand_field(\"#{code}\");return(false)'>#{list.size - 2} more ...<a>"
+    end
   end
 
   def genecard_trigger(gname, text)
@@ -199,12 +211,12 @@ helpers do
   def kegg_summary(pathways)
     return [] if pathways.nil?
     pathways.collect do |code|
-      desc = $kegg_pathway_index[code]
+      desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
       name = ''
       join_hash_fields($anais[code]).each do |p|
         cancer, type, score, desc2 = p
         css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
-        name += " <span class='#{ css_class }'>[#{ cancer } cancer]</span>"
+        name += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span>"
       end
       "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc} #{ name }</a>"
     end
