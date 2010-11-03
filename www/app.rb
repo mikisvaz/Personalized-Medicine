@@ -66,7 +66,7 @@ helpers do
       end.collect{|p| p.first}.reverse
     when 'drugs'
       genes = @info.sort_by do |key,value|
-        ((value[:PharmaGKB] || []) + (value[:Matador] || [])).size
+        ((value[:PharmaGKB] || []) + (value[:Matador] || []) + (value[:NCI] || []).collect{|f| f.first}.uniq).size
       end.collect{|p| p.first}.reverse  
     when 'nci_diseases'
       genes = @info.sort_by do |key,value|
