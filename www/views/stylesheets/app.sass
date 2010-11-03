@@ -1,1 +1,49 @@
-@import main
+@import rounded_corners
+
+=button
+  +round-corners(2)
+  :background-color  #0073EA
+  :color white
+  :padding 0px 5px 0px 5px
+  
+
+
+body
+  :margin 20px
+  :font-family Helvetica,Arial,sans-serif !important
+  :color #444444
+  
+h1
+  :color #0073EA
+  :font-size 24px  
+h2
+  :color #FF0084
+  :font-size 18px
+  :margin-top 10px
+  :margin-bottom 5px 
+h3
+  :font-size 16px  
+  :margin-top 10px
+  :margin-bottom 5px 
+   
+h1#header
+  :position absolute
+  :top 10px
+  :left 30px
+  :width auto
+
+#menu
+  :position absolute
+  :top 10px
+  :right 30px
+  :text-align right
+  p
+    :margin-bottom 5px 
+  a
+    +button()
+    :text-decoration none
+
+
+.flexigrid
+  :margin-top 60px
+
