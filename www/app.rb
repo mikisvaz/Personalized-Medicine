@@ -35,7 +35,7 @@ def rows2excel(rows, file)
   worksheet.row(0).default_format = heading
 
   rows.each_with_index do |row,i| 
-    worksheet.row(i + 1).concat row['cell'].collect{|v| v.gsub(/<.*?>/,'') }
+    worksheet.row(i + 1).concat row['cell'].collect{|v| (v || "").gsub(/<.*?>/,'') }
   end
 
   workbook.write(file)
@@ -95,7 +95,6 @@ helpers do
           mutation_severity_summary(values)
         }.first || "NO"
       end.collect{|p| p.first}.reverse   
-
     when 'snp_go'
       genes = @info.sort_by do |key,value|
         (value[:Mutations] ||[]).collect{|values| 
@@ -252,7 +251,6 @@ helpers do
 
     count
   end
-
 
   def go_link(id)
     name = GO.id2name(id)
