@@ -89,11 +89,8 @@ module PhGx
   end
 
   GENE_FIELDS     = ['Protein ID', 'Gene ID', 'Gene Name']
-  MUTATION_FIELDS = ['Chr', 'Position','Ref Genome Allele','Variant Allele', 'Substitution', 'SNP Type', 'Ubio Score']
+  MUTATION_FIELDS = ['Chr', 'Position','Ref Genome Allele','Variant Allele', 'Substitution', 'SNP Type', 'Ubio Score', 'Prediction', 'OMIM Disease']
   def self.analyze_NGS(filename)
-    gene_fields = ['Protein ID', 'Gene ID', 'Gene Name']
-    mutation_fields = ['Chr', 'Position','Ref Genome Allele','Variant Allele', 'Substitution', 'SNP Type', 'Ubio Score']
-
     data = TSV.new(filename, :native => 'Position1', :keep_empty => true)
 
     gene_names        = data.slice(*GENE_FIELDS)

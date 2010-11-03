@@ -59,6 +59,19 @@ helpers do
           (values[0].to_i < 10 ? "0" << values[0] : values[0]) + values[1]
         }.first || "NO"
       end.collect{|p| p.first}.reverse   
+    when 'sift'
+      genes = @info.sort_by do |key,value|
+        (value[:Mutations] ||[]).collect{|values| 
+          values[7] =~ /DAMAGING/ ? (values[7] =~ /Low/ ? 1 : 2) : (values[7] =~ /TOLERATED/ ? -1 : 0)
+        }.first || "NO"
+      end.collect{|p| p.first}.reverse   
+    when 'severity'
+      genes = @info.sort_by do |key,value|
+        (value[:Mutations] ||[]).collect{|values| 
+          mutation_severity_summary(values)
+        }.first || "NO"
+      end.collect{|p| p.first}.reverse   
+
     when 'snp_go'
       genes = @info.sort_by do |key,value|
         (value[:Mutations] ||[]).collect{|values| 
@@ -116,9 +129,14 @@ helpers do
             mutation[5],
             mutation[6],
 
-            mutation[7] ? mutation[7][1] : 'NO',
-            mutation[8] ? mutation[8][5] : 'NO',
-            mutation[9] ? mutation[9][4] : 'NO',
+            {0 => "Neutral", 1 => "Low", 2 => "Medium", 3 => "High"}[mutation_severity_summary(mutation)],
+
+            mutation[9] ? mutation[9][1] : 'NO',
+            mutation[10] ? mutation[10][5] : 'NO',
+
+            mutation[7],
+
+            mutation[11] ? mutation[11][4] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
@@ -203,6 +221,16 @@ helpers do
     out     
   end
 
+  def mutation_severity_summary(mutation)
+    count = 0
+
+    count += 1 if mutation[7] && mutation[7] == 'DAMAGING'
+    count += 1 if mutation[9] && mutation[9][1] == 'Disease'
+    count += 1 if mutation[10] && mutation[10][5] =~ /damaging/
+
+    count
+  end
+
 
   def go_link(id)
     name = GO.id2name(id)
@@ -232,6 +260,7 @@ helpers do
 
     "<a href='http://www.genome.jp/kegg-bin/show_pathway?#{id}'>#{ name }</a>"
   end
+
   
   
 end
