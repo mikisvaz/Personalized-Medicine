@@ -75,26 +75,26 @@ helpers do
     when 'snp_go'
       genes = @info.sort_by do |key,value|
         (value[:Mutations] ||[]).collect{|values| 
-          values[7] ? (values[7][1] =~ /Disease/ ? 1 : -1) : 0
+          values[9] ? (values[9][1] =~ /Disease/ ? 1 : -1) : 0
         }.max || "NO"
       end.collect{|p| p.first}.reverse   
     when 'firedb'
       genes = @info.sort_by do |key,value|
         (value[:Mutations] ||[]).collect{|values| 
-          values[9] ? (values[9][4] =~ /Y/ ? 1 : -1) : 0
+          values[11] ? (values[11][4] =~ /Y/ ? 1 : -1) : 0
         }.max || "NO"
       end.collect{|p| p.first}.reverse   
     when 'polyphen'
       genes = @info.sort_by do |key,value|
         (value[:Mutations] ||[]).collect{|values| 
           case 
-          when values[8].nil? || values[6].empty?
+          when values[10].nil? || values[6].empty?
             0
-          when values[8][5] == 'benign'
+          when values[10][5] == 'benign'
             -1
-          when values[8][5] == 'possibly damaging'
+          when values[10][5] == 'possibly damaging'
             1
-          when values[8][5] == 'probably damaging'
+          when values[10][5] == 'probably damaging'
             2
           else
             0
@@ -131,11 +131,10 @@ helpers do
 
             {0 => "Neutral", 1 => "Low", 2 => "Medium", 3 => "High"}[mutation_severity_summary(mutation)],
 
-            mutation[9] ? mutation[9][1] : 'NO',
-            mutation[10] ? mutation[10][5] : 'NO',
-
             mutation[7],
 
+            mutation[10] ? mutation[10][5] : 'NO',
+            mutation[9] ? mutation[9][1] : 'NO',
             mutation[11] ? mutation[11][4] : 'NO',
 
             kegg_summary(gene_info[:KEGG]).join(', '),
