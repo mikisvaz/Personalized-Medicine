@@ -6,6 +6,7 @@ require 'rbbt/sources/go'
 require 'rbbt/sources/entrez'
 require 'digest/md5'
 require 'json'
+require 'spreadsheet'
 
 enable :sessions
 $anais = PhGx::CancerAnnotations.load_data
@@ -15,6 +16,29 @@ $PharmaGKB_drug_index = TSV.new(File.join(Sinatra::Application.root, '../data/Ph
 def join_hash_fields(list)
   return [] if list.nil? || list.empty?
   list[0].zip(*list[1..-1])
+end
+
+TABLE_FIELDS = [ 'GeneName', 'Position', 'Mutation', 'Type', 'Score', 'Severity', 'SIFT', 'Polyphen',
+  'SNP&GO', 'FireDB', 'Pathways', 'Drugs', 'Cancers for which it was reported']
+
+def rows2excel(rows, file)
+  workbook = Spreadsheet::Workbook.new
+
+  heading = Spreadsheet::Format.new( :color => "green", :bold => true, :underline => true ) 
+  data = Spreadsheet::Format.new( :color => "black", :bold => false, :underline => false ) 
+  workbook.add_format(heading)  
+  workbook.add_format(data)  
+
+  worksheet = workbook.create_worksheet
+
+  worksheet.row(0).concat TABLE_FIELDS
+  worksheet.row(0).default_format = heading
+
+  rows.each_with_index do |row,i| 
+    worksheet.row(i + 1).concat row['cell'].collect{|v| v.gsub(/<.*?>/,'') }
+  end
+
+  workbook.write(file)
 end
 
 
@@ -145,8 +169,7 @@ helpers do
       end
     end
     
-    data = {:page => page, :total => @info.size, :rows =>rows}
-    data.to_json
+    rows
   end
 
   def genecard_trigger(gname, text)
@@ -295,6 +318,26 @@ get '/ajax/genecard' do
   haml :_tabs, :layout => false, :locals => locals
 end
 
+get '/excel/' do
+  cookie      = session["genes"] ||= nil
+  
+  @info = marshal_cache('info',cookie) do
+    raise "Info should be preloaded"
+  end
+ 
+  rows = summary_table(@info,1 , @info.size - 1, 'score', 'desc')
+
+  FileUtils.mkdir_p File.join(Sinatra::Application.root,'/public/spreadsheets/') unless File.exists? File.join(Sinatra::Application.root,'/public/spreadsheets/')
+  file = File.join(Sinatra::Application.root,'/public/spreadsheets/', cookie + '.xls')
+  
+  rows2excel(rows, file)
+
+  content_type 'application/x-excel'
+  attachment 'Mutation_info.xls'
+
+  File.open(file).read
+end
+
 post '/ajax/genes' do 
   
   page        = params[:page] ||= 1
@@ -307,9 +350,10 @@ post '/ajax/genes' do
     raise "Info should be preloaded"
   end
   
-  #p summary_table(@info,page,rp,sortname,sortorder)  
   content_type :json
-  summary_table(@info,page,rp,sortname,sortorder)
+  rows = summary_table(@info,page,rp,sortname,sortorder)
+
+  data = {:page => page, :total => @info.size, :rows =>rows}.to_json
 end
 
 get '/' do
