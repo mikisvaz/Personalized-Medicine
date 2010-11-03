@@ -212,7 +212,7 @@ helpers do
     return [] if nci_drugs.nil?
     nci_drugs.reject{|d| d.first.empty?}.collect do |d|
         "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a> [NCI]"
-    end
+    end.uniq
   end
 
   def kegg_summary(pathways)
