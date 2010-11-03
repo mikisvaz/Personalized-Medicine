@@ -34,12 +34,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    Rakefile
   }
  }
- tmp=tmp {
- }
- webservice=webservice{
- }
- data=data{
- }
  www=www{
   app.rb
   views=views{
