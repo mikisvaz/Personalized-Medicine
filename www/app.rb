@@ -166,7 +166,7 @@ helpers do
             mutation[11] ? mutation[11][4] : 'NO',
 
             list_summary(kegg_summary(gene_info[:KEGG]), excel),
-            list_summary((matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])), excel),
+            list_summary((matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB]) + nci_drug_summary(info[gname][:NCI])), excel),
             mutation[8] || "",
             list_summary(cancer_genes_summary(info[gname][:Anais_cancer]), excel),
             list_summary(nci_diseases_summary(info[gname][:NCI_cancer]), excel)
@@ -207,7 +207,14 @@ helpers do
         "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
     end
   end
-  
+   
+  def nci_drug_summary(nci_drugs)
+    return [] if nci_drugs.nil?
+    nci_drugs.reject{|d| d.first.empty?}.collect do |d|
+        "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a> [NCI]"
+    end
+  end
+
   def kegg_summary(pathways)
     return [] if pathways.nil?
     pathways.collect do |code|
