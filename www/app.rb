@@ -67,6 +67,10 @@ helpers do
       genes = @info.sort_by do |key,value|
         ((value[:PharmaGKB] || []) + (value[:Matador] || [])).size
       end.collect{|p| p.first}.reverse  
+    when 'nci_diseases'
+      genes = @info.sort_by do |key,value|
+        (value[:NCI_cancer] || []).size
+      end.collect{|p| p.first}.reverse   
     when 'cancers'
       genes = @info.sort_by do |key,value|
         (value[:Anais_cancer] || []).size
@@ -162,7 +166,8 @@ helpers do
 
             kegg_summary(gene_info[:KEGG]).join(', '),
             (matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])).join(', '),
-            cancer_genes_summary(info[gname][:Anais_cancer]).join(', ')
+            cancer_genes_summary(info[gname][:Anais_cancer]).join(', '),
+            nci_diseases_summary(info[gname][:NCI_cancer]).join(', ')
         ]}
         rows << row
       end
@@ -214,6 +219,16 @@ helpers do
       []  
     end
   end
+ 
+  def nci_diseases_summary(nci_diseases)
+    if nci_diseases != nil
+      nci_diseases.collect do |c|
+        "<span>#{c.first}</span>"
+      end
+    else
+      []  
+    end
+  end
   
   def drug_details_summary(matador_drugs,pgkb_drugs)
     return '' if (matador_drugs.nil? && pgkb_drugs.nil?)
@@ -245,7 +260,7 @@ helpers do
   def mutation_severity_summary(mutation)
     count = 0
 
-    count += 1 if mutation[7] && mutation[7] == 'DAMAGING'
+    count += 1 if mutation[7] && mutation[7] =~ /DAMAGING/
     count += 1 if mutation[9] && mutation[9][1] == 'Disease'
     count += 1 if mutation[10] && mutation[10][5] =~ /damaging/
 
