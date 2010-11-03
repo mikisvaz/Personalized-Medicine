@@ -50,7 +50,7 @@ helpers do
      digest
   end
   
-  def summary_table(info,page,rp,sortname,sortorder)
+  def summary_table(info,page,rp,sortname,sortorder, excel = false)
     rows    = []
     rstart  = (page.to_i - 1)*rp.to_i
     rend    = rstart + rp.to_i
@@ -165,11 +165,11 @@ helpers do
             mutation[9] ? mutation[9][1] : 'NO',
             mutation[11] ? mutation[11][4] : 'NO',
 
-            list_summary(kegg_summary(gene_info[:KEGG])),
-            list_summary((matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB]))),
+            list_summary(kegg_summary(gene_info[:KEGG]), excel),
+            list_summary((matador_summary(info[gname][:Matador]) + pharmagkb_summary(info[gname][:PharmaGKB])), excel),
             mutation[8] || "",
-            list_summary(cancer_genes_summary(info[gname][:Anais_cancer])),
-            list_summary(nci_diseases_summary(info[gname][:NCI_cancer]))
+            list_summary(cancer_genes_summary(info[gname][:Anais_cancer]), excel),
+            list_summary(nci_diseases_summary(info[gname][:NCI_cancer]), excel)
         ]}
         rows << row
       end
@@ -178,9 +178,9 @@ helpers do
     rows
   end
 
-  def list_summary(list)
+  def list_summary(list, excel = false)
     code = Digest::MD5.hexdigest(list.inspect)
-    if list.length < 3
+    if list.length < 3 || excel
       list * ', '
     else
       list[0..1] * ', ' + ', ' +
@@ -350,7 +350,7 @@ get '/excel/' do
     raise "Info should be preloaded"
   end
  
-  rows = summary_table(@info,1 , @info.size - 1, 'score', 'desc')
+  rows = summary_table(@info,1 , @info.size - 1, 'score', 'desc', true)
 
   FileUtils.mkdir_p File.join(Sinatra::Application.root,'/public/spreadsheets/') unless File.exists? File.join(Sinatra::Application.root,'/public/spreadsheets/')
   file = File.join(Sinatra::Application.root,'/public/spreadsheets/', cookie + '.xls')
