@@ -236,7 +236,7 @@ helpers do
     if nci_diseases != nil
       nci_diseases.collect do |c|
         "<span>#{c.first}</span>"
-      end
+      end.uniq
     else
       []  
     end
