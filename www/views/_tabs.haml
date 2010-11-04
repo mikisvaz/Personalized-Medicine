@@ -16,6 +16,7 @@
                                                :description => description,
                                                :summary => summary}  
   %div#tabs-1
+    = haml :_pathways, :layout => false, :locals => {:gene_info => gene_info}    
   
   %div#tabs-2
     = haml :_drugs, :layout => false, :locals => {:gene_info => gene_info}  

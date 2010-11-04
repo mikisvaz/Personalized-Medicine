@@ -249,6 +249,28 @@ helpers do
     end
   end
   
+  def pathway_details_summary(kegg_pathways)
+  	return '' if kegg_pathways.nil?
+  	out =  ''
+  	 kegg_pathways.collect do |code|
+      desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
+      out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='height:50px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
+      out += "<h3>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></h3>"
+      name = ''
+      cancers = join_hash_fields($anais[code])
+      if (cancers.size != 0)
+     	out += '<h4>This pathway has more mutations than expected by chance in the following tumour types</h4>'
+     	cancers.each do |p|
+        	cancer, type, score, desc2 = p
+        	css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
+        	out += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span> "
+      	end
+      end
+      out += '<div style="height:30px;">&nbsp;</div>'
+    end
+  	out
+  end
+  
   def drug_details_summary(matador_drugs,pgkb_drugs)
     return '' if (matador_drugs.nil? && pgkb_drugs.nil?)
 
