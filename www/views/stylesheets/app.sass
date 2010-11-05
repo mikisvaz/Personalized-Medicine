@@ -1,12 +1,35 @@
 @import rounded_corners
 
+=clean_list($inline: true)
+  li
+    :list-style none
+    @if $inline
+      :display inline
+
+=clearfix
+  *display: inline-block
+  overflow: visible !important
+  &:after
+    content: " "
+    display: block
+    height: 0
+    clear: both
+    visibility: hidden
+
 =button
   +round-corners(2)
   :background-color  #0073EA
-  :color white
-  :padding 0px 5px 0px 5px
+  :color white !important
+  :padding 2px 5px 2px 5px
+  &:visited
+    :color white !important
   
-
+a
+  :color #444444
+a
+  &:visited
+    :color #444444
+    
 a.expand
   :color red
 
@@ -17,6 +40,9 @@ body
   :margin 20px
   :font-family Helvetica,Arial,sans-serif !important
   :color #444444
+  
+p 
+  :margin 0 0 0.5em !important  
   
 h1
   :color #0073EA
@@ -42,6 +68,12 @@ h1#header
   :left 30px
   :width auto
 
+.red
+  :color red !important  
+
+thead th
+  :background-color transparent
+
 #menu
   :position absolute
   :top 10px
@@ -56,4 +88,14 @@ h1#header
 
 .flexigrid
   :margin-top 60px
+  :color #444444 !important
+  :font-family Helvetica, Arial, sans-serif !important
+  :font-size 11px !important
+
+.ui-widget
+  :font-size 11px !important
+  
+.clearfix
+  +clearfix
+  
 

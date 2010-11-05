@@ -1,8 +1,10 @@
 %dt
-  Description
-  %a{ :target => "_blank", :href => "http://www.ncbi.nlm.nih.gov/sites/entrez?Db=gene&Cmd=ShowDetailView&ordinalpos=1&itool=EntrezSystem2.PEntrez.Gene.Gene_ResultsPanel.Gene_RVDocSum&TermToSearch=#{entrez}"} Entrez Gene
-        
+  %b Description
 %dd= description
 
-%dt Summary
+%dt
+  %b Summary
 %dd= summary
+
+%dd
+  %a{ :target => "_blank", :href => "http://www.ncbi.nlm.nih.gov/sites/entrez?Db=gene&Cmd=ShowDetailView&ordinalpos=1&itool=EntrezSystem2.PEntrez.Gene.Gene_ResultsPanel.Gene_RVDocSum&TermToSearch=#{entrez}"} View more

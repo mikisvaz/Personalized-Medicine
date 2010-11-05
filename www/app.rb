@@ -195,23 +195,24 @@ helpers do
   def matador_summary(matador_drugs)
     return [] if matador_drugs.nil?
     matador_drugs.collect do |d|
-      name, id, score, annot, mscore, mannot = d
-      css_class = (mannot == 'DIRECT')?'red':'normal';
-      "<a target='_blank' href='http://matador.embl.de/drugs/#{id}/'>#{name}</a> [M]"
+      name, id, score, annot, mscore, mannot, mmscore, mmannot = d
+      direct = [annot, mannot, mmannot].select{|a| a == 'DIRECT'}.any?
+      css_class = direct ? 'red' : 'normal';
+      "<a target='_blank' class='#{css_class}' href='http://matador.embl.de/drugs/#{id}/'>#{name}</a>"
     end  
   end
   
   def pharmagkb_summary(pgkb_drugs)
     return [] if pgkb_drugs.nil?
     pgkb_drugs.collect do |d|
-        "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
+        "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a>"
     end
   end
    
   def nci_drug_summary(nci_drugs)
     return [] if nci_drugs.nil?
     nci_drugs.reject{|d| d.first.empty?}.collect do |d|
-        "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a> [NCI]"
+        "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a> "
     end.uniq
   end
 
@@ -219,13 +220,7 @@ helpers do
     return [] if pathways.nil?
     pathways.collect do |code|
       desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
-      name = ''
-      join_hash_fields($anais[code]).each do |p|
-        cancer, type, score, desc2 = p
-        css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
-        name += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span>"
-      end
-      "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc} #{ name }</a>"
+      "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc}</a>"
     end
   end
   
@@ -250,51 +245,68 @@ helpers do
   end
   
   def pathway_details_summary(kegg_pathways)
-  	return '' if kegg_pathways.nil?
-  	out =  ''
-  	 kegg_pathways.collect do |code|
+    return '' if kegg_pathways.nil?
+    out =  ''
+     kegg_pathways.collect do |code|
       desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
-      out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='height:50px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
-      out += "<h3>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></h3>"
+      out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='width:70px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
+      out += '<div style="float:left;width:600px;">'; 
+      out += "<p><b>#{desc}</b></p>"
       name = ''
       cancers = join_hash_fields($anais[code])
       if (cancers.size != 0)
-     	out += '<h4>This pathway has more mutations than expected by chance in the following tumour types</h4>'
-     	cancers.each do |p|
-        	cancer, type, score, desc2 = p
-        	css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
-        	out += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span> "
-      	end
+        out += '<p>This pathway has more mutations than expected by chance in the following tumour types</p>'
+        cancers.each do |p|
+            cancer, type, score, desc2 = p
+            css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
+            out += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span> "
+        end
       end
-      out += '<div style="height:30px;">&nbsp;</div>'
+      out += '<p><a target="_blank" href="http://www.genome.jp/kegg-bin/show_pathway?#{code}">View more</a></p>'
+      out += '</div>'
+      out += '<div class="clearfix"></div>'
+      out += '<div class="height:10px;">&nbsp;</div>' 
     end
-  	out
+    out
   end
   
-  def drug_details_summary(matador_drugs,pgkb_drugs)
-    return '' if (matador_drugs.nil? && pgkb_drugs.nil?)
+  def drug_details_summary(matador_drugs,pgkb_drugs,nci_drugs)
+    return '' if (matador_drugs.nil? && pgkb_drugs.nil?  && nci_drugs.nil? )
 
     out =  ''
-    if (matador_drugs)
-      matadorOut = '<h3>MATADOR drugs (Full list)</h3><div>'
-      matador_drugs.collect do |d|
-        name, score, annot, mscore, mannot = d
-        css_class = (mannot == 'DIRECT')?'red':'normal';
-        matadorOut += "<span class='#{css_class}'>#{name}</span> [M] "
+    if ((matador_drugs || []).any?)
+      matadorOut = '<dt><b>MATADOR drugs (Full list)</b></dt><dd>'
+      matador_drugs_a = matador_drugs.collect do |d|
+        name, id, score, annot, mscore, mannot, mmscore, mmannot = d
+        direct = [annot, mannot, mmannot].select{|a| a == 'DIRECT'}.any?
+        css_class = direct ? 'red' : 'normal';
+        "<a target='_blank' class='#{css_class}' href='http://matador.embl.de/drugs/#{id}/'>#{name}</a>"
       end
-       matadorOut += '</div>'
-       out += matadorOut  
-    end    
-    if (pgkb_drugs)
-      pgkbOut = '<h3>PharmaGKB drugs (Full list)</h3><div>'
-      pgkb_drugs.collect do |d|
-        pgkbOut += "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
+      matadorOut << matador_drugs_a * ', '
+      matadorOut << '</dd>'
+      out << matadorOut  
+    end  
+
+    if ((pgkb_drugs || []).any?)
+      pgkbOut = '<dt><b>PharmaGKB drugs (Full list)</b></dt><dd>'
+      pgkb_drugs_a = pgkb_drugs.collect do |d|
+        "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a>"
       end
-
-       pgkbOut += '</div>'
-       out += pgkbOut  
+      pgkbOut << pgkb_drugs_a * ', '
+      pgkbOut << '</dd>'
+      out << pgkbOut  
+    end  
+    
+    if ((nci_drugs || []).any?)
+       nciOut = '<dt><b>NCI  drugs (Full list)</b></dt><dd>'
+       
+       nci_drugs_a = nci_drugs.reject{|d| d.first.empty?}.collect do |d|
+         "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a>"
+       end.uniq
+       
+       nciOut << nci_drugs_a * ', '
+       out << nciOut
     end    
-
     out     
   end
 
