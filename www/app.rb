@@ -53,7 +53,7 @@ helpers do
   def summary_table(info,page,rp,sortname,sortorder, excel = false)
     rows    = []
     rstart  = (page.to_i - 1)*rp.to_i
-    rend    = rstart + rp.to_i
+    rend    = [info.keys.length - 1, rstart + rp.to_i].min
     
     case sortname
     when 'genename'
@@ -262,7 +262,7 @@ helpers do
             out += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span> "
         end
       end
-      out += '<p><a target="_blank" href="http://www.genome.jp/kegg-bin/show_pathway?#{code}">View more</a></p>'
+      out += "<p><a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>View more</a></p>"
       out += '</div>'
       out += '<div class="clearfix"></div>'
       out += '<div class="height:10px;">&nbsp;</div>' 
