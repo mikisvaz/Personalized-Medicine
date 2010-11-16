@@ -18,10 +18,10 @@ $kegg_pathway_index   = TSV.new(File.join(Sinatra::Application.root, '../data/KE
 $PharmaGKB_drug_index = TSV.new(File.join(Sinatra::Application.root, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
 
 $table_config = {
-  'Metastasis' => ['/home/mvazquezg/git/NGS/data/IRS/table.tsv', 'table_config/ngs.rb'],
-  'NoMetastasis' => ['/home/mvazquezg/git/NGS/data/LP2/table.tsv', 'table_config/ngs.rb'],
-  'Exclusive' => ['/home/mvazquezg/git/NGS/data/Exclusive/table.tsv', 'table_config/ngs.rb'],
-  'Raquel' => ['/home/mvazquezg/genes_CN.tsv', 'table_config/raquel.rb'],
+  'Metastasis'   => [File.join(SINATRA, 'data/Metastasis.tsv'), 'table_config/ngs.rb'],
+  'NoMetastasis' => [File.join(SINATRA, 'data/NoMetastasis.tsv'), 'table_config/ngs.rb'],
+  'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), 'table_config/ngs.rb'],
+  'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), 'table_config/raquel.rb'],
 }
 
 get '/excel/:file' do
@@ -81,8 +81,6 @@ get '/genecard/:file' do
   haml :_tabs, :layout => false, :locals => locals
 end
 
-
-
 post '/data/:file' do
   page        = params[:page]      || 1
   rp          = params[:rp]        || 15
@@ -108,6 +106,7 @@ post '/data/:file' do
   rows = flextable.items(page.to_i, rp.to_i, sortname, sortorder, 'html').
     collect{|row| {:id => digest(row.inspect), :cell => row} }
 
+  content_type :json
   data = {:page => page.to_i, :total => data.size, :rows => rows}.to_json
 end
 
