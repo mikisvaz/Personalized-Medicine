@@ -1,4 +1,3 @@
-require 'rbbt/util/open'
 require '../rake_helper'
 
 define_source_tasks "protein_chemicals" => "http://stitch.embl.de:8080/download/protein_chemical.links.v2.0.tsv.gz",
@@ -6,19 +5,20 @@ define_source_tasks "protein_chemicals" => "http://stitch.embl.de:8080/download/
 
 process_tsv :protein_chemical, 'protein_chemicals',
   :native => 1,
-  :exclude => lambda{|l| l !~ /9606\./}, 
+  :grep => "9606\.", 
   :fix => lambda{|l| l.sub(/9606\./,'')},
   :keep_empty => true do
 
   headers ['Ensembl Protein ID', 'Chemical', 'Score']
 end
 
-#process_tsv :chemicals, 'protein_chemicals',
-#  :select => lambda{|l| $chemicals.include?(l.match(/(.*?)\t/)[1]) }, 
-#  :native => 0 do
+process_tsv :chemicals, 'protein_chemicals',
+  :grep => $grep_re, 
+  :native => 0 do
 
-#  $chemicals = TSV.new('protein_chemical', :native => 1).keys
+  chemicals = TSV.new('protein_chemical', :native => 1).keys
+  $grep_re = "#{chemicals * '\|'}"
 
-#  headers ['Ensembl Protein ID', 'Chemical', 'Score']
-#end
+  headers ['Ensembl Protein ID', 'Chemical', 'Score']
+end
 

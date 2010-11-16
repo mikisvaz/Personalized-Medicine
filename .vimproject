@@ -4,13 +4,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  }
  lib=lib{
   phgx.rb
-  tc_hash.rb
-  tsv.rb
+  per_med.rb
+  table.rb
  }
  test=test{
   test_helper.rb
-  test_tc_hash.rb
-  test_tsv.rb
  }
  data=data {
   Rakefile
@@ -36,7 +34,14 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  }
  www=www{
   app.rb
+  helpers.rb
+  app2.rb
+  table_config=table_config{
+   ngs.rb
+   raquel.rb
+  }
   views=views{
+   index.haml
    _drugs.haml
    _gene.haml
    _summary.haml

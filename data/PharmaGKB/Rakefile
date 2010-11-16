@@ -1,12 +1,12 @@
 require 'rbbt/util/open'
 require '../rake_helper'
 
-define_source_tasks "genes.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=genes.zip",
-  "drugs.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=drugs.zip",
-  "diseases.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=diseases.zip",
-  "relationships.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=relationships.zip",
-  "variants.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=variantAnnotations.zip",
-  "pathways.zip" => "http://www.pharmgkb.org/commonFileDownload.action?filename=pathways-tsv.zip"
+define_source_tasks "genes" => "http://www.pharmgkb.org/commonFileDownload.action?filename=genes.zip",
+  "drugs" => "http://www.pharmgkb.org/commonFileDownload.action?filename=drugs.zip",
+  "diseases" => "http://www.pharmgkb.org/commonFileDownload.action?filename=diseases.zip",
+  "relationships" => "http://www.pharmgkb.org/commonFileDownload.action?filename=relationships.zip",
+  "variants" => "http://www.pharmgkb.org/commonFileDownload.action?filename=variantAnnotations.zip",
+  "pathways" => "http://www.pharmgkb.org/commonFileDownload.action?filename=pathways-tsv.zip"
  
 
 process_tsv :diseases, 'diseases', 

@@ -1,7 +1,7 @@
 require 'rbbt/sources/organism'
 require 'rbbt/util/open'
+require 'rbbt/util/tsv'
 require 'cachehelper'
-require 'tsv'
 
 
 module PhGx
@@ -33,6 +33,7 @@ module PhGx
       TSV.new(CANCER_FILE, :native => 1, :persistence => true)
     end
   end
+
   def self.get_db_info(gene, path, options)
     format = options.collect{|opt| opt =~ /^field\[(.*?)\]/; $1}.compact.first
     flatten = options.select{|opt| opt == "flatten"}.any?
@@ -141,9 +142,72 @@ module PhGx
     gene_data
   end
 
+  def self.mutation_severity_summary(mutation)
+    count = 0
+
+    count += 1 if mutation[7] && mutation[7] =~ /DAMAGING/
+    count += 1 if mutation[9] && mutation[9][1] == 'Disease'
+    count += 1 if mutation[10] && mutation[10][5] =~ /damaging/
+
+    count
+  end
+
+  def self.gene_drug_dot(i, filename)
+    kegg_pathway_index = TSV.new(File.join(File.dirname(__FILE__), '../data/KEGG/pathways'), :single => true, :persistence => true)
+    File.open(filename, 'w') do |f|
+      f.puts "graph G {"
+      f.puts " overlap=scale;"
+      i.each do |gene, info|
+        next if ((info[:NCI] || []) + (info[:Matador] || []) + (info[:NCI_cancer] || [])).empty? || gene.last.nil? || gene.last.empty?
+        #next if ((info[:KEGG] || [])).empty? || gene.last.nil? || gene.last.empty?
+        
+        severity = info[:Mutations].collect{|mutation| mutation_severity_summary(mutation)}.max
+
+        color = case severity
+                when 0
+                  "green"
+                when 1
+                  "yellow"
+                else
+                  "red"
+                end
+
+        f.puts "node  [width=.6,height=.6,shape=octagon,color=#{color}] #{gene.last};"
+        (info[:NCI] || []).each do |v|
+          f.puts "node  [width=.3,height=.3,shape=box,color=white] \"#{v[0]}\";"
+          f.puts [gene.last, v[0]].collect{|n| "\"#{ n }\"" } * " -- " + ";"
+        end
+        (info[:Matador] || []).each do |v|
+          f.puts "node  [width=.3,height=.3,shape=box,color=blue] \"#{v[0]}\";"
+          f.puts [gene.last, v[0]].collect{|n| "\"#{ n }\"" } * " -- " + ";"
+        end
+        (info[:KEGG] || []).each do |v|
+          v = kegg_pathway_index[v].sub(/ - Homo.*/,'')
+          f.puts "node  [width=.3,height=.3,shape=box,color=green] \"#{v}\";"
+          f.puts [gene.last, v].collect{|n| "\"#{ n }\"" } * " -- " + ";"
+        end
+        (info[:Anais_cancer] || []).each do |v|
+          v = 'Cancer'
+          f.puts "node  [width=.3,height=.3,shape=circle,color=red] \"#{v}\";"
+          f.puts [gene.last, v].collect{|n| "\"#{ n }\"" } * " -- " + ";"
+        end
+
+        (info[:STITCH] || []).each do |v|
+          f.puts [gene.last, v[0]].collect{|n| "\"#{ n }\"" } * " -- " + ";"
+        end
+
+      end
+      f.puts "}"
+    end
+
+  end
+
+
 end
 
 if __FILE__ == $0
-  p PhGx.analyze_NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
+  info = PhGx.analyze_NGS '/home/mvazquezg/git/NGS/data/Exclusive/table.tsv'
+  p info.values.first.fields
+  PhGx.gene_drug_dot(info, 'foo.dot')
 end
 

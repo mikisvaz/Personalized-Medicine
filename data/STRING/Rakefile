@@ -3,7 +3,7 @@ require '../rake_helper'
 
 define_source_tasks "protein_protein" => "http://string-db.org:8080/newstring_download/protein.links.v8.3.txt.gz"
 
-process_tsv :protein_protein, 'protein_protein', :select => lambda{|l| l =~ /9606\.ENSP/}, :fix => lambda{|l| l.gsub(/9606\./,'')} do 
+process_tsv :protein_protein, 'protein_protein', :grep => '9606\.ENSP', :fix => lambda{|l| l.gsub(/9606\./,'')} do 
   headers ['Ensembl Protein ID', 'Ensembl Protein ID', 'Score']
 end
 

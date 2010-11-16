@@ -6,3 +6,11 @@ task :default do
     `cd #{dir}; rake`
   end
 end
+
+task :clean do
+  Dir.glob('*/Rakefile') do |file|
+    dir = File.dirname(file)
+    puts "Updating #{ dir }"
+    `cd #{dir}; rake clean`
+  end
+end

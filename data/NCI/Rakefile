@@ -1,7 +1,7 @@
 require '../rake_helper'
 
-define_source_tasks "cancer_gene.zip" => "https://gforge.nci.nih.gov/frs/download.php/6819/NCI_CancerIndex_allphases_disease.zip",
-  "gene_drug.zip" => "https://gforge.nci.nih.gov/frs/download.php/6821/NCI_CancerIndex_allphases_compound.zip"
+define_source_tasks "cancer_gene" => "https://gforge.nci.nih.gov/frs/download.php/6819/NCI_CancerIndex_allphases_disease.zip",
+  "gene_drug" => "https://gforge.nci.nih.gov/frs/download.php/6821/NCI_CancerIndex_allphases_compound.zip"
 
 
 

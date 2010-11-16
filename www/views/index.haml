@@ -1,0 +1,20 @@
+%h1#header Personalized Medicine
+
+#menu
+  %p#file_selection
+    - $table_config.keys.each do |file|
+      %a(href="/#{ file }")= file
+  %p#excel
+    %a(href="/excel/#{ @file }") Download table in Excel
+
+
+%table{:id => "summary_table"}
+
+#genecard
+  
+:javascript
+  genecard_href = '/genecard/' + '#{@file}';
+
+  $('#summary_table').flexigrid(
+    #{ @flextable.flexicode("/data/" + @file).gsub(/,/,",\n") }
+  )

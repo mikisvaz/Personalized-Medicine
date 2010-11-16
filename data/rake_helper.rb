@@ -1,20 +1,15 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
+require 'rbbt/util/tsv'
 require 'rbbt/util/open'
-require 'tsv'
 
 SOURCE_DIR = 'source'
 def define_source_tasks(sources)
   sources.each do |name, url|
     FileUtils.mkdir SOURCE_DIR unless File.exists? SOURCE_DIR
     file File.join(SOURCE_DIR, name) do |t|
-      Open.write(t.name, Open.read(url, :cache => false, :wget_options => "--no-check-certificate"))
-    end
-    if name =~ /.zip/
-      file File.join(SOURCE_DIR, name.sub(/.zip$/,'')) =>  File.join(SOURCE_DIR, name) do |t|
-        `unzip -p #{t.prerequisites.first} > #{ t.name }`
-      end
+      Open.write(t.name, Open.read(url, :cache => false, :wget_options => {"--no-check-certificate" => true, "--quiet" => false, :pipe => false}))
     end
   end
 end
