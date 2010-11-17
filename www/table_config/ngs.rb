@@ -17,7 +17,7 @@ end
 field "Position", :width => 100 do
   
   show do |key, values| 
-    "#{values["Chr"]}:#{values["Position"]}, #{values["Ref Genome Allele"]}/#{values["Variant Allele"]}"
+    "#{first(values["Chr"])}:#{first values["Position"]}, #{first values["Ref Genome Allele"]}/#{first values["Variant Allele"]}"
   end
 
   sort do |a, b| 

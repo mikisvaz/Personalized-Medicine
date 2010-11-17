@@ -73,8 +73,8 @@ get '/genecard/:file' do
     :entrez => entrez(gene), 
     :name => gene, 
     :gene_info => gene_info(data, gene),
-    :description => entrez_info(gene).description,
-    :summary => entrez_info(gene).summary,
+    :description => entrez_info(gene).description.flatten.first,
+    :summary => entrez_info(gene).summary.flatten.first,
   }
   
   
