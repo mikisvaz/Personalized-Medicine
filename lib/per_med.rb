@@ -113,7 +113,7 @@ module PersonalizedMedicine
 
   def self.Raquel(filename)
     field_types = %w(type probability expression top5_loss top5_gain)
-    data = TSV.new(filename)
+    data = TSV.new(filename, :unique => true)
 
     patient_fields = {}
     data.fields.each do |field|
