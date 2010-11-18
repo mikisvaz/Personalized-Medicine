@@ -2,7 +2,7 @@
 
 #menu
   %p#file_selection
-    - $table_config.keys.each do |file|
+    - $table_config.keys.sort.each do |file|
       %a(href="/#{ file }")= file
   %p#excel
     %a(href="/excel/#{ @file }") Download table in Excel
