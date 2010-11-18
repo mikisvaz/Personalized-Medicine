@@ -22,12 +22,11 @@ $table_config = {
   'NoMetastasis' => [File.join(SINATRA, 'data/NoMetastasis.tsv'), 'table_config/ngs.rb'],
   'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), 'table_config/ngs.rb'],
   'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), 'table_config/raquel.rb'],
+  'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), 'table_config/raquel_patient.rb'],
 }
 
-get '/excel/:file' do
-  file = params[:file] || 'Exclusive'
-
-  data, table_config = marshal_cache('data', file) do
+def data(file)
+  marshal_cache('data', file) do
     case file
     when 'Exclusive'
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
@@ -37,8 +36,16 @@ get '/excel/:file' do
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'Raquel'
       [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
+    when 'Raquel_Patient'
+      [PersonalizedMedicine.Raquel_Patient($table_config[file].first), $table_config[file].last]
     end
   end
+end
+
+get '/excel/:file' do
+  file = params[:file] || 'Exclusive'
+
+  data, table_config = data(file)
 
   flextable =  FlexTable.new(data, table_config)
 
@@ -56,18 +63,7 @@ get '/genecard/:file' do
   file = params[:file] || 'Exclusive'
   gene = params[:gene].split(/_/)
  
-  data, table_config = marshal_cache('data', file) do
-    case file
-    when 'Exclusive'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Metastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'NoMetastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Raquel'
-      [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
-    end
-  end
+  data, table_config = data(file)
 
   locals = {
     :entrez => entrez(gene), 
@@ -88,18 +84,7 @@ post '/data/:file' do
   sortorder   = params[:sortorder] || 'desc'
   file        = params[:file]      || 'Exclusive'
 
-  data, table_config = marshal_cache('data', file) do
-    case file
-    when 'Exclusive'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Metastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'NoMetastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Raquel'
-      [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
-    end
-  end
+  data, table_config = data(file)
 
   flextable =  FlexTable.new(data, table_config)
 
@@ -110,23 +95,15 @@ post '/data/:file' do
   data = {:page => page.to_i, :total => data.size, :rows => rows}.to_json
 end
 
-get '/:file' do
-  file = params[:file] || 'Exclusive'
+get '/*' do
+  file = params[:splat].first 
+  file = 'Exclusive' if file.empty?
 
-  data, table_config = marshal_cache('data', file) do
-    case file
-    when 'Exclusive'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Metastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'NoMetastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
-    when 'Raquel'
-      [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
-    end
-  end
+  data, table_config = data(file)
+
   @flextable =  FlexTable.new(data, table_config)
   @file = file
 
   haml :index
 end
+

@@ -148,13 +148,60 @@ module PersonalizedMedicine
     new_data
   end
 
+  def self.Raquel_Patient(filename)
+    field_types = %w(type probability expression top5_loss top5_gain)
+    data = TSV.new(filename, :unique => true)
+
+    patient_fields = {}
+    data.fields.each do |field|
+      if field =~ /(.*?)_(#{field_types * "|"})/
+        patient      = $1
+        field_type   = $2
+        patient_fields[patient] ||= {}
+        patient_fields[patient][field_type] = field
+      end
+    end
+
+    patients = patient_fields.keys.sort
+
+    patient_table = []
+    genes = []
+    data.each do |gene, info|
+      genes << info["Name"]
+      row = []
+      patients.each do |patient|
+        fields = patient_fields[patient].values_at(*field_types)
+        patient_data = info.values_at(*fields) * "|"
+        row << patient_data
+      end
+      patient_table << row
+    end
+    patient_table = patient_table.transpose
+
+    patient_tsv = TSV.new({})
+
+    patients.each_with_index do |patient, i|
+      gene_info = []
+      patient_table[i].each_with_index{|r,j| 
+        gene_info << genes[j] + "|" + r
+      }
+      gene_info = gene_info.collect{|r| r.split("|")}.transpose
+      patient_tsv[patient] = gene_info
+    end
+    
+    patient_tsv.key_field = "Patient"
+    patient_tsv.fields = ["Gene"].concat(field_types)
+    patient_tsv
+  end
+
 end
 
 if __FILE__ == $0
-  p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
+  #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
   #profile do
-  #  t = PersonalizedMedicine.Raquel '/home/mvazquezg/genes_CN.tsv'
+  t = PersonalizedMedicine.Raquel_Patient File.join(File.dirname(__FILE__), '../www/data/Raquel.tsv')
+  p t.fields
   #end
 end
 

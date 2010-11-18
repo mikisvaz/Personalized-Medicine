@@ -61,7 +61,7 @@ class FlexTable
   end
 
   def default_show(key, values, field)
-    if @fields.include? field
+    if values.include?(field)
       case
       when String === values[field]
         values[field]
