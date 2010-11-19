@@ -34,7 +34,11 @@ end
 
 def genecard_trigger(gname, text)
   gname = [gname] unless Array === gname
-  "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{gname * "_"}\");return(false);'>#{text}</a>"
+  if gname.last =~ /UNKNOWN/
+    text
+  else
+    "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{gname * "_"}\");return(false);'>#{text}</a>"
+  end
 end
 
 
