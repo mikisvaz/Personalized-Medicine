@@ -3,7 +3,10 @@
 #menu
   %p#file_selection
     - $table_config.keys.sort.each do |file|
-      %a(href="/#{ file }")= file
+      - if file == @file
+        %a.active(href="/#{ file }")= file
+      - else
+        %a(href="/#{ file }")= file
   %p#excel
     %a(href="/excel/#{ @file }") Download table in Excel
 
