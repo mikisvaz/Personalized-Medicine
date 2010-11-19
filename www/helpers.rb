@@ -22,6 +22,7 @@ def entrez_info(gene)
 end
 
 def patient_info(data, gene)
+  return nil if ! data.fields.include? "Name"
   data.each do |key, value|
     return value["Patients"] if value['Name'] == gene 
   end
@@ -200,10 +201,10 @@ end
 def patients_details_top5_patient_list(patient_info)
   return "Sorry, no information about patients found" if patient_info.nil?
   plist  = []
-  patient_info.collect do |name,patient|
-    if patient['top5_gain'][0] != "0"
+  patient_info.sort_by{|name, patient| name}.collect do |name,patient|
+    if patient['top5_gain'] != "0"
       plist << '<span class="gain">' + name + '</span>'
-    elsif patient['top5_loss'][0] != "0"
+    elsif patient['top5_loss'] != "0"
       plist << '<span class="loss">' + name + '</span>'
     else
       plist << name
@@ -216,8 +217,8 @@ def patients_details_expression(patient_info)
   return "Sorry, no information about patients found" if patient_info.nil?
   out  = 'var expression = [';
   points = []
-  patient_info.collect do |name,patient|
-    points << '["'+name+'",'+patient['expression'][0]+']'
+  patient_info.sort_by{|name, patient| name}.collect do |name,patient|
+    points << '["' + name + '",' + patient['expression'] + ']'
   end 
   out << points * ',' 
   out << '];'

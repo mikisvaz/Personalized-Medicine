@@ -13,7 +13,7 @@ def digest(str)
 end
 SINATRA = Sinatra::Application.root
 
-$anais                = TSV.new(File.join(Sinatra::Application.root, '../data/CancerGenes/anais-annotations'), :single => true, :persistence => true)
+$anais                = TSV.new(File.join(Sinatra::Application.root, '../data/CancerGenes/anais-annotations.txt'), :single => true, :persistence => true)
 $kegg_pathway_index   = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :extra => 'Name', :single => true, :persistence => true)
 $PharmaGKB_drug_index = TSV.new(File.join(Sinatra::Application.root, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
 
@@ -74,7 +74,7 @@ get '/genecard/:file' do
     :entrez => entrez(gene), 
     :name => gene, 
     :gene_info => gene_info(data, gene),
-    :patient_info => patient_info(data, gene)
+    :patient_info => patient_info(data, gene),
     :description => entrez_info(gene).description.flatten.first,
     :summary => entrez_info(gene).summary.flatten.first,
   }

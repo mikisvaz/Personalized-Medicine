@@ -49,7 +49,7 @@ module PersonalizedMedicine
      'NCI#NCI:gene_drug#zip',
      'NCI_cancer#NCI:gene_cancer#zip',
      'KEGG_DRUG#KEGG:gene_drug#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
-     'STITCH#STITCH:gene_chemical#zip',
+#     'STITCH#STITCH:protein_chemical#zip',
      'KEGG#KEGG:gene_pathway#flatten|intermediate[KEGG:genes<Ensembl Gene ID><KEGG Gene ID>]',
      'Anais_cancer#CancerGenes:anais-annotations.txt#flatten',
    ].each do |db|
