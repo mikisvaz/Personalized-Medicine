@@ -8,7 +8,10 @@
       %a(href='#tabs-1') Pathways
     %li 
       %a(href='#tabs-2') Drugs
-     
+    -if file == 'Raquel'
+      %li 
+        %a(href='#tabs-3') Patients  
+    
   %div#tabs-0
     = haml :_gene, :layout => false, :locals => {:entrez => entrez,
                                                :name => name,
@@ -21,4 +24,7 @@
   %div#tabs-2
     = haml :_drugs, :layout => false, :locals => {:gene_info => gene_info}  
   
+  -if file == 'Raquel'
+    %div#tabs-3
+      = haml :_patients, :layout => false, :locals => {:patient_info => patient_info}  
 

@@ -1,6 +1,6 @@
 require 'helpers'
 
-field "Name", :width => 50, :display => "Gene Name" do
+field "Name", :width => 80, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
       genecard_trigger values["Name"], values["Name"].compact.reverse.first
@@ -32,7 +32,7 @@ field "Position", :width => 100 do
 end
 
 
-field "Sig. Lost in Patients" do
+field "Sig. Lost in Patients" , :width => 100 , :align =>'center' do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
       first(patient_info["type"]) == "Lost" and first(patient_info["probability"]).to_f.abs  > 0.95
@@ -47,7 +47,7 @@ field "Sig. Lost in Patients" do
 end
 
 
-field "Sig. Gained in Patients" do
+field "Sig. Gained in Patients" , :width => 120, :align =>'center' do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
       first(patient_info["type"]) == "Gain" and first(patient_info["probability"]).to_f.abs  > 0.95
@@ -62,7 +62,7 @@ field "Sig. Gained in Patients" do
 
 end
 
-field "Cancers", :width => 100 do
+field "Cancers", :width => 80 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(cancer_genes_summary(value["Gene Info"][:Anais_cancer], true))
@@ -91,7 +91,7 @@ field "Cancers [NCI]", :width => 100 do
 end
 
 
-field "Pathways", :width => 100 do
+field "Pathways", :width => 120 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(kegg_summary(value["Gene Info"][:KEGG], true))
@@ -105,7 +105,7 @@ field "Pathways", :width => 100 do
   end
 end
 
-field "Drugs", :width => 100 do
+field "Drugs", :width => 120 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(matador_summary(value["Gene Info"][:Matador], true) + pharmagkb_summary(value["Gene Info"][:PharmaGKB], true) + nci_drug_summary(value["Gene Info"][:NCI], true))

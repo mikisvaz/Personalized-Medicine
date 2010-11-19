@@ -69,12 +69,15 @@ get '/genecard/:file' do
     end
   end
 
+ 
   locals = {
+  	:file => file,
     :entrez => entrez(gene), 
     :name => gene, 
     :gene_info => gene_info(data, gene),
     :description => entrez_info(gene).description,
     :summary => entrez_info(gene).summary,
+    :patient_info => patient_info(data, gene)
   }
   
   

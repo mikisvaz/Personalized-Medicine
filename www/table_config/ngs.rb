@@ -1,6 +1,6 @@
 require 'helpers'
 
-field "Gene", :width => 50, :display => "Gene Name" do
+field "Gene", :width => 80, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
       genecard_trigger values["Gene"], values["Gene"].compact.reverse.first
@@ -14,7 +14,7 @@ field "Gene", :width => 50, :display => "Gene Name" do
   end
 end
 
-field "Position", :width => 100 do
+field "Position", :width => 80 do
   
   show do |key, values| 
     "#{values["Chr"]}:#{values["Position"]}, #{values["Ref Genome Allele"]}/#{values["Variant Allele"]}"
@@ -30,7 +30,7 @@ field "Position", :width => 100 do
   end
 end
 
-field "Substitution", :width => 100 
+field "Substitution", :width => 60 
 
 field "Type", :width => 100 do
   sort_by do |key, value| 
@@ -47,11 +47,11 @@ field "Type", :width => 100 do
   end
 end
 
-field "Score", :width => 100 do
+field "Score", :width => 50 do
   sort_by do |key, value| first(value["Score"]).to_i end
 end
 
-field "Severity", :width => 100 do
+field "Severity", :width => 50 do
   show do |key, value|
     {0 => "Neutral", 1 => "Low", 2 => "Medium", 3 => "High"}[mutation_severity_summary(value)]
   end
@@ -88,7 +88,7 @@ field "Polyphen", :width => 100 do
   end
 end
 
-field "SNP&GO", :width => 100 do
+field "SNP&GO", :width => 60 do
   show do |key, value|
     if value["SNP&GO"]
       first(value["SNP&GO"]["Disease?"])
@@ -113,7 +113,7 @@ field "SNP&GO", :width => 100 do
 end
 
 
-field "FireDB", :width => 100 do
+field "FireDB", :width => 40 do
   show do |key, value|
     if value["FireDB"]
       first value["FireDB"]["Disease?"]
@@ -137,7 +137,7 @@ field "FireDB", :width => 100 do
   end
 end
 
-field "OMIM Disease", :display => "Mutation in OMIM"
+field "OMIM Disease", :width => 100, :display => "Mutation in OMIM"
 
 field "Cancers", :width => 100 do
   show do |key, value|

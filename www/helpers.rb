@@ -20,6 +20,12 @@ def entrez_info(gene)
   end
 end
 
+def patient_info(data, gene)
+  data.each do |key, value|
+    return value["Patients"] if value['Name'] == gene 
+  end
+end
+
 def first(array)
   (array || [""]).first
 end
@@ -188,3 +194,30 @@ def drug_details_summary(matador_drugs,pgkb_drugs,nci_drugs)
   end    
   out     
 end
+
+def patients_details_top5_patient_list(patient_info)
+  return "Sorry, no information about patients found" if patient_info.nil?
+  plist  = []
+  patient_info.collect do |name,patient|
+    if patient['top5_gain'][0] != "0"
+      plist << '<span class="gain">' + name + '</span>'
+    elsif patient['top5_loss'][0] != "0"
+      plist << '<span class="loss">' + name + '</span>'
+    else
+      plist << name
+    end
+  end    
+  plist * ', '    
+end
+
+def patients_details_expression(patient_info)
+  return "Sorry, no information about patients found" if patient_info.nil?
+  out  = 'var expression = [';
+  points = []
+  patient_info.collect do |name,patient|
+    points << '["'+name+'",'+patient['expression'][0]+']'
+  end 
+  out << points * ',' 
+  out << '];'
+end
+

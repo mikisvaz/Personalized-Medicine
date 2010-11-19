@@ -2,6 +2,7 @@ function update_genecard(gene){
     $.ajax({
       url : genecard_href,
       data : {gene : gene},
+      dataType: 'script',
       success : function(response){
         $('#genecard').html(response);
         $('#tabs').tabs();
