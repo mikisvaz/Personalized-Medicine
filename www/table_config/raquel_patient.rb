@@ -1,8 +1,8 @@
 require 'helpers'
 
-field "Patient"
+field "Patient", :width => 80
 
-field "Top Lost Genes" do
+field "Top Lost Genes", :width => 300  do
   show do |key,values|
     v = TSV.zip_fields(values)
     list = []
@@ -22,7 +22,7 @@ field "Top Lost Genes" do
   end
 end
 
-field "Number of Gene Losses" do
+field "# Loss", :width => 40, :align => 'center' do
   show do |key,values|
     v = TSV.zip_fields(values)
     v.select{|vv| vv["type"] == "Loss"}.length
@@ -34,7 +34,7 @@ field "Number of Gene Losses" do
   end
 end
 
-field "Top Gain Genes" do
+field "Top Gain Genes", :width => 300 do
   show do |key,values|
     v = TSV.zip_fields(values)
     list = []
@@ -54,7 +54,7 @@ field "Top Gain Genes" do
   end
 end
 
-field "Number of Gene Gains" do
+field "# Gain", :width => 40, :align => 'center' do
   show do |key,values|
     v = TSV.zip_fields(values)
     v.select{|vv| vv["type"] == "Gain"}.length

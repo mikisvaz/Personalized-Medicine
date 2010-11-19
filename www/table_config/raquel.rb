@@ -46,7 +46,7 @@ field "Lost in Patients", :width => 100, :align => 'center' do
   end
 end
 
-field "Top 5 Lost in Patients" do
+field "T5 Lost", :width => 40, :align => 'center' do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
       first(patient_info["top5_loss"]) == "1"
@@ -77,7 +77,7 @@ field "Gained in Patients", :width => 120, :align =>'center'do
 
 end
 
-field "Top 5 Gained in Patients" do
+field "T5 Gain", :width => 40, :align => 'center' do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
       first(patient_info["top5_gain"]) == "1"
@@ -105,7 +105,7 @@ field "Cancers", :width => 100 do
   end
 end
 
-field "Cancers [NCI]", :width => 100 do
+field "Cancers [NCI]", :width => 150 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(nci_diseases_summary(value["Gene Info"][:NCI_cancer], true))
@@ -120,7 +120,7 @@ field "Cancers [NCI]", :width => 100 do
 end
 
 
-field "Pathways", :width => 120 do
+field "Pathways", :width => 150 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(kegg_summary(value["Gene Info"][:KEGG], true))
@@ -134,7 +134,7 @@ field "Pathways", :width => 120 do
   end
 end
 
-field "Drugs", :width => 120 do
+field "Drugs", :width => 150 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(matador_summary(value["Gene Info"][:Matador], true) + pharmagkb_summary(value["Gene Info"][:PharmaGKB], true) + nci_drug_summary(value["Gene Info"][:NCI], true))
