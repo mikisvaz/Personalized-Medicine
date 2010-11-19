@@ -3,14 +3,14 @@ require 'helpers'
 field "Name", :width => 80, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
-      genecard_trigger values["Name"], values["Name"].compact.reverse.first
+      genecard_trigger values["Name"], values["Name"]
     else
-      values["Name"].compact.reverse.first 
+      values["Name"] 
     end
   end
 
   sort_by do |key, values| 
-    values["Name"].compact.reverse.first 
+    values["Name"] 
   end
 end
 
@@ -32,37 +32,66 @@ field "Position", :width => 100 do
 end
 
 
-field "Sig. Lost in Patients" , :width => 100 , :align =>'center' do
+field "Lost in Patients", :width => 100, :align => 'center' do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
-      first(patient_info["type"]) == "Lost" and first(patient_info["probability"]).to_f.abs  > 0.95
+      first(patient_info["type"]) == "Loss"
     end.length
   end
 
   sort_by do |key, values| 
     values["Patients"].select do |patient, patient_info|
-       first(patient_info["type"]) == "Lost"  and first(patient_info["probability"]).to_f.abs  > 0.95
+       first(patient_info["type"]) == "Loss"
     end.length
   end
 end
 
-
-field "Sig. Gained in Patients" , :width => 120, :align =>'center' do
+field "Top 5 Lost in Patients" do
   show do |key, values| 
     values["Patients"].select do |patient, patient_info|
-      first(patient_info["type"]) == "Gain" and first(patient_info["probability"]).to_f.abs  > 0.95
+      first(patient_info["top5_loss"]) == "1"
     end.length
   end
 
   sort_by do |key, values| 
     values["Patients"].select do |patient, patient_info|
-       first(patient_info["type"]) == "Gain"  and first(patient_info["probability"]).to_f.abs  > 0.95
+      first(patient_info["top5_loss"]) == "1"
+    end.length
+  end
+end
+
+
+
+field "Gained in Patients", :width => 120, :align =>'center'do
+  show do |key, values| 
+    values["Patients"].select do |patient, patient_info|
+      first(patient_info["type"]) == "Gain"
+    end.length
+  end
+
+  sort_by do |key, values| 
+    values["Patients"].select do |patient, patient_info|
+       first(patient_info["type"]) == "Gain"
     end.length
   end
 
 end
 
-field "Cancers", :width => 80 do
+field "Top 5 Gained in Patients" do
+  show do |key, values| 
+    values["Patients"].select do |patient, patient_info|
+      first(patient_info["top5_gain"]) == "1"
+    end.length
+  end
+
+  sort_by do |key, values| 
+    values["Patients"].select do |patient, patient_info|
+      first(patient_info["top5_gain"]) == "1"
+    end.length
+  end
+end
+
+field "Cancers", :width => 100 do
   show do |key, value|
     if $_table_format == "html"
       list_summary(cancer_genes_summary(value["Gene Info"][:Anais_cancer], true))

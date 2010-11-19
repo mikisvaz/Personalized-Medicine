@@ -17,7 +17,7 @@ end
 field "Position", :width => 80 do
   
   show do |key, values| 
-    "#{values["Chr"]}:#{values["Position"]}, #{values["Ref Genome Allele"]}/#{values["Variant Allele"]}"
+    "#{first(values["Chr"])}:#{first values["Position"]}, #{first values["Ref Genome Allele"]}/#{first values["Variant Allele"]}"
   end
 
   sort do |a, b| 
@@ -47,7 +47,7 @@ field "Type", :width => 100 do
   end
 end
 
-field "Score", :width => 50 do
+field "Ubio Score", :display => "Score", :width => 50 do
   sort_by do |key, value| first(value["Score"]).to_i end
 end
 

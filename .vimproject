@@ -3,7 +3,6 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   gene2drugs.rb
  }
  lib=lib{
-  phgx.rb
   per_med.rb
   table.rb
  }
@@ -35,10 +34,10 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  www=www{
   app.rb
   helpers.rb
-  app2.rb
   table_config=table_config{
    ngs.rb
    raquel.rb
+   raquel_patient.rb
   }
   views=views{
    index.haml

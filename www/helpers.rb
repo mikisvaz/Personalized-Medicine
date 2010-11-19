@@ -10,6 +10,7 @@ end
 
 def entrez(gene)
   i = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :persistence => true)
+  return nil if i[gene].nil?
   i[gene].first
 end
 
@@ -31,6 +32,7 @@ def first(array)
 end
 
 def genecard_trigger(gname, text)
+  gname = [gname] unless Array === gname
   "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{gname * "_"}\");return(false);'>#{text}</a>"
 end
 

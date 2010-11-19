@@ -61,14 +61,14 @@ class FlexTable
   end
 
   def default_show(key, values, field)
-    if @fields.include? field
+    if pos = Misc.field_position(values.fields, field, true)
       case
-      when String === values[field]
-        values[field]
-      when Array === values[field] && values[field].size == 1
-        values[field].first
+      when String === values[pos]
+        values[pos]
+      when Array === values[pos] && values[pos].size == 1
+        values[pos].first
       else
-        values[field].inspect
+        values[pos].inspect
       end
     else
       key
@@ -95,8 +95,8 @@ class FlexTable
   def default_sort(field)
     @data.sort_by do |key, values|
       values = NamedArray.name values, @data.fields
-      if values.fields.include? field
-        values[field].inspect
+      if pos = Misc.field_position(values.fields, field, true)
+        values[pos].inspect
       else
         key
       end
