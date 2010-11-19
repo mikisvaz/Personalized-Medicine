@@ -47,7 +47,7 @@ field "Type", :width => 100 do
   end
 end
 
-field "Score", :width => 100 do
+field "Ubio Score", :display => "Score", :width => 100 do
   sort_by do |key, value| first(value["Score"]).to_i end
 end
 

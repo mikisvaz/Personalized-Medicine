@@ -61,8 +61,11 @@ end
 
 get '/genecard/:file' do 
   file = params[:file] || 'Exclusive'
-  gene = params[:gene].split(/_/)
+  gene = params[:gene]
+  gene = gene.split(/_/) if gene =~ /_/
  
+  file = 'Raquel' if file == 'Raquel_Patient'
+
   data, table_config = data(file)
 
   locals = {
