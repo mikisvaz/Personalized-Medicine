@@ -125,10 +125,10 @@ class FlexTable
   def flexicode(url, options = {})
     options = Misc.add_defaults options, 
       :dataType           => 'json',
-      :sortorder          => "asc",
+      :sortorder          => "desc",
       :usepager           => true,
       :singleSelect       => true,
-      :title              => "Data",
+      :title              => "Personalized Medicine",
       :useRp              => true,
       :rp                 => 15,
       :showTableToggleBtn => false,
