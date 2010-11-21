@@ -61,6 +61,22 @@ field "Severity", :width => 50 do
   end
 end
 
+field "Prediction", :display => "SIFT", :width => 80 do
+  sort_by do |key, value|
+    case
+    when value["Prediction"].first =~ /Low confidence/
+      1
+    when value["Prediction"].first =~ /DAMAGING/
+      2
+    when value["Prediction"].first =~ /TOLERATED/
+      -1
+    else
+      0
+    end
+  end
+
+end
+
 field "Polyphen", :width => 100 do
   show do |key, value|
     if value["Polyphen"]
