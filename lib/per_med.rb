@@ -5,7 +5,7 @@ require 'rbbt/util/tsv'
 module PersonalizedMedicine
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
   DATA_DIR = File.join(ROOT_DIR, 'data')
-  TSV.cachedir = File.join(ROOT_DIR, 'cache','tsv')
+  TSV.cache_dir = File.join(ROOT_DIR, 'cache','tsv')
 
   def self.get_db_info(gene, path, options)
     format = options.collect{|opt| opt =~ /^field\[(.*?)\]/; $1}.compact.first
