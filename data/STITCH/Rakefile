@@ -12,13 +12,13 @@ process_tsv :protein_chemical, 'protein_chemicals',
   headers ['Ensembl Protein ID', 'Chemical', 'Score']
 end
 
-process_tsv :chemicals, 'protein_chemicals',
-  :grep => $grep_re, 
-  :native => 0 do
+$grep_re = []
+process_tsv :chemicals, 'chemicals',
+  :grep    => $grep_re,
+  :exclude => proc{|l| p = l.split(/\t/); p[0] == p[1]} do
 
-  chemicals = TSV.new('protein_chemical', :native => 1).keys
-  $grep_re = "#{chemicals * '\|'}"
+  $grep_re.replace CMD.cmd('cut', "-f" => 2, :in => File.open('protein_chemical')).read.split(/\n/).collect{|v| v.split(/\t/)}.flatten
 
-  headers ['Ensembl Protein ID', 'Chemical', 'Score']
+  headers ['Chemical ID', 'Name', 'Source']
 end
 
