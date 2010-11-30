@@ -40,11 +40,13 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    raquel_patient.rb
   }
   views=views{
-   index.haml
    _drugs.haml
    _gene.haml
+   _pathways.haml
+   _patients.haml
    _summary.haml
    _tabs.haml
+   index.haml
    layout.haml
    results.haml
    gene=gene{

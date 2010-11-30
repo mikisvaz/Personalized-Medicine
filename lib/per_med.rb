@@ -1,6 +1,5 @@
+require 'rbbt-util'
 require 'rbbt/sources/organism'
-require 'rbbt/util/open'
-require 'rbbt/util/tsv'
 
 module PersonalizedMedicine
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')

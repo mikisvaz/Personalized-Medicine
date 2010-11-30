@@ -202,10 +202,10 @@ def drug_details_summary(matador_drugs,pgkb_drugs,nci_drugs)
   out     
 end
 
-def patients_details_top5_patient_list(patient_info)
+def patients_details_top5_patient_list(patient_info, gained = true)
   return "Sorry, no information about patients found" if patient_info.nil?
   plist  = []
-  patient_info.sort_by{|name, patient| name}.collect do |name,patient|
+  patient_info.select{|name, patient| (patient['type'] == 'Gain') == gained }.sort_by{|name, patient| name}.collect do |name,patient|
     if patient['top5_gain'] != "0"
       plist << '<span class="gain">' + name + '</span>'
     elsif patient['top5_loss'] != "0"

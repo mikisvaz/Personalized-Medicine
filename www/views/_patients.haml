@@ -1,7 +1,12 @@
 %dt
   %b Patients list
 %dd <span class="gain">Red:</span> gene is in the top5 gained genes for this patient. <span class="loss">Green:</span> gene is in the top5 lost genes fot this patient.  
-%div= patients_details_top5_patient_list(patient_info) 
+
+%dl
+  %dt Gained in Patients
+  %dd= patients_details_top5_patient_list(patient_info, true) 
+  %dt Lost in Patients
+  %dd= patients_details_top5_patient_list(patient_info, false) 
 %br
 %dt 
   %b Expression data
