@@ -13,16 +13,16 @@ def digest(str)
 end
 SINATRA = Sinatra::Application.root
 
-$anais                = TSV.new(File.join(Sinatra::Application.root, '../data/CancerGenes/anais-annotations.txt'), :single => true, :persistence => true)
-$kegg_pathway_index   = TSV.new(File.join(Sinatra::Application.root, '../data/KEGG/pathways'), :extra => 'Name', :single => true, :persistence => true)
-$PharmaGKB_drug_index = TSV.new(File.join(Sinatra::Application.root, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
+$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single => true, :persistence => true)
+$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'), :extra => 'Name', :single => true, :persistence => true)
+$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
 
 $table_config = {
-  'Metastasis'   => [File.join(SINATRA, 'data/Metastasis.tsv'), 'table_config/ngs.rb'],
-  'NoMetastasis' => [File.join(SINATRA, 'data/NoMetastasis.tsv'), 'table_config/ngs.rb'],
-  'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), 'table_config/ngs.rb'],
-  'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), 'table_config/raquel.rb'],
-  'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), 'table_config/raquel_patient.rb'],
+  'Metastasis'   => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'NoMetastasis' => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
+  'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
 }
 
 def data(file)
@@ -49,7 +49,7 @@ get '/excel/:file' do
 
   flextable =  FlexTable.new(data, table_config)
 
-  excelfile = File.join(Sinatra::Application.root,'/public/spreadsheets/', file + '.xls')
+  excelfile = File.join(SINATRA,'/public/spreadsheets/', file + '.xls')
 
   flextable.excel(excelfile)
 
