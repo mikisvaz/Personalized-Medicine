@@ -16,7 +16,7 @@ end
 # set sinatra's variables
 set :app_file, __FILE__
 set :root, File.expand_path(File.dirname(__FILE__))
-set :views, "views"
+set :views, File.join(Sinatra::Application.root, "views")
 
 configure do
   Compass.add_project_configuration(File.join(Sinatra::Application.root, 'config', 'compass.config'))
