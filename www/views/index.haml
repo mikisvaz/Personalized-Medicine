@@ -1,23 +1,44 @@
-%h1#header Personalized Medicine
+%div#container
+  %div#loading Loading...
+  %div#logo
+    %h1#header Personalized <b style="color:#008284">Medicine</b>
+  %div#menu
+    %ul
+      %li <a href="">Home</a>
+      %li <a href="">Experiments</a>
+      %li <a href="">Methodology</a>
+      %li <a href="mailto:mikisvaz@gmail.com,vdelatorre@cnio.es">Contact</a>
+  %div{:class => 'clearfix'}  
+  %table{:id => "summary_table",:style => "display:none"}
+  %div#genecard
+    
+  %div#experiments 
+    %h3 SELECT YOUR EXPERIMENT
+    %ul#file_selection
+      - $table_config.keys.sort.each do |file|
+        - if file == @file
+          %li
+            %a.active(href="/#{ file }")= file
+        - else
+          %li
+            %a(href="/#{ file }")= file
+  %div{:class => 'clearfix'}
+  %div#footer 
+    Structural Biology and Biocomputing Group, CNIO      
+  
+  
 
-#menu
-  %p#file_selection
-    - $table_config.keys.sort.each do |file|
-      - if file == @file
-        %a.active(href="/#{ file }")= file
-      - else
-        %a(href="/#{ file }")= file
-  %p#excel
-    %a(href="/excel/#{ @file }") Download table in Excel
+  
 
-
-%table{:id => "summary_table",:style => "display:none"}
-
-#genecard
   
 :javascript
+  $("#loading").ajaxStart(function() { $(this).css('visibility','visible') });
+  $("#loading").ajaxStop(function() { $(this).css('visibility','hidden') });
   genecard_href = '/genecard/' + '#{@file}';
-
+  function exportToExcell(){
+    $(location).attr('href',"/excel/#{ @file }");
+  }
+  
   $('#summary_table').flexigrid(
-    #{ @flextable.flexicode("/data/" + @file).gsub(/,/,",\n") }
+    #{ @flextable.flexicode(("/data/" + @file).gsub(/,/,",\n"),:sortname => 'Drugs', :buttons => [{:name => "Export to Excel", :bclass => "add", :onpress =>"CALLBACK"}]).sub(/"CALLBACK"/,'exportToExcell')}
   )

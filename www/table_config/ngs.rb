@@ -1,6 +1,6 @@
 require 'helpers'
 
-field "Gene", :width => 80, :display => "Gene Name" do
+field "Gene", :width => 60, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
       genecard_trigger values["Gene"], values["Gene"].compact.reverse.first
@@ -14,10 +14,14 @@ field "Gene", :width => 80, :display => "Gene Name" do
   end
 end
 
-field "Position", :width => 80 do
+field "Position", :width => 130, :display => "Mutation" do
   
   show do |key, values| 
-    "#{first(values["Chr"])}:#{first values["Position"]}, #{first values["Ref Genome Allele"]}/#{first values["Variant Allele"]}"
+    pm = "#{first(values["Chr"])}:#{first values["Position"]}, #{first values["Ref Genome Allele"]}/#{first values["Variant Allele"]}"
+    if (first values["Substitution"]) != ""
+       pm << " (#{first values["Substitution"]})"
+    end  
+    pm
   end
 
   sort do |a, b| 
@@ -30,9 +34,20 @@ field "Position", :width => 80 do
   end
 end
 
-field "Substitution", :width => 60 
 
-field "Type", :width => 100 do
+field "Type", :width => 30, :align => 'center' do
+  
+  show do |key, value| 
+    case first(value["Type"]) 
+    when "Nonsynonymous"
+      "N"
+    when "NA"
+      "NA"
+    when "Synonymous"
+      "S"
+    end
+  end
+
   sort_by do |key, value| 
     case first(value["Type"]) 
     when "Nonsynonymous"
@@ -47,7 +62,7 @@ field "Type", :width => 100 do
   end
 end
 
-field "Ubio Score", :display => "Score", :width => 50 do
+field "Ubio Score", :display => "Score", :width => 30, :align=> 'center' do
   sort_by do |key, value| first(value["Score"]).to_i end
 end
 
@@ -77,7 +92,7 @@ field "Prediction", :display => "SIFT", :width => 80 do
 
 end
 
-field "Polyphen", :width => 100 do
+field "Polyphen", :width => 60 do
   show do |key, value|
     if value["Polyphen"]
       first value["Polyphen"]["prediction"]
@@ -129,7 +144,7 @@ field "SNP&GO", :width => 60 do
 end
 
 
-field "FireDB", :width => 40 do
+field "FireDB", :width => 40, :align =>'center' do
   show do |key, value|
     if value["FireDB"]
       first value["FireDB"]["Disease?"]
@@ -150,36 +165,6 @@ field "FireDB", :width => 40 do
       0
     end
  
-  end
-end
-
-field "OMIM Disease", :width => 100, :display => "Mutation in OMIM"
-
-field "Cancers", :width => 100 do
-  show do |key, value|
-    if $_table_format == "html"
-      list_summary(cancer_genes_summary(value["Gene Info"][:Anais_cancer], true))
-    else
-      cancer_genes_summary(value["Gene Info"][:Anais_cancer], false)
-    end
-  end
-
-  sort_by do |key, value| 
-    (value["Gene Info"][:Anais_cancer] || []).size
-  end
-end
-
-field "Cancers [NCI]", :width => 100 do
-  show do |key, value|
-    if $_table_format == "html"
-      list_summary(nci_diseases_summary(value["Gene Info"][:NCI_cancer], true))
-    else
-      nci_diseases_summary(value["Gene Info"][:NCI_cancer], false)
-    end
-  end
-
-  sort_by do |key, value| 
-    (value["Gene Info"][:NCI_cancer] || []).size
   end
 end
 
@@ -210,3 +195,35 @@ field "Drugs", :width => 100 do
     ((value["Gene Info"][:Matador] || []) + (value["Gene Info"][:PharmaGKB] || []) + (value["Gene Info"][:NCI] || [])).size
   end
 end
+
+field "Cancers", :width => 100 do
+  show do |key, value|
+    if $_table_format == "html"
+      list_summary(cancer_genes_summary(value["Gene Info"][:Anais_cancer], true))
+    else
+      cancer_genes_summary(value["Gene Info"][:Anais_cancer], false)
+    end
+  end
+
+  sort_by do |key, value| 
+    (value["Gene Info"][:Anais_cancer] || []).size
+  end
+end
+
+field "Cancers [NCI]", :width => 100 do
+  show do |key, value|
+    if $_table_format == "html"
+      list_summary(nci_diseases_summary(value["Gene Info"][:NCI_cancer], true))
+    else
+      nci_diseases_summary(value["Gene Info"][:NCI_cancer], false)
+    end
+  end
+
+  sort_by do |key, value| 
+    (value["Gene Info"][:NCI_cancer] || []).size
+  end
+end
+
+
+field "OMIM Disease", :width => 100, :display => "Mutation in OMIM"
+

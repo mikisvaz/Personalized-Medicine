@@ -23,7 +23,80 @@
   :padding 2px 5px 2px 5px
   &:visited
     :color white !important
+    
+//Layout
+#container
+  :width 1024px
+  :margin 0 auto
+#loading
+  :margin 0 auto
+  :width 100px
+  :background-color #CCCCCC
+  :color #000000
+  :padding 5px
+  :margin-bottom 10px 
+      
+#logo
+  :width 734px
+  :float left
+#menu
+  :width 290px
+  :float left
+  :text-align right  
+
+.flexigrid
+  :margin-top 20px
+  :margin-bottom 20px  
   
+#genecard
+  :width 772px
+  :height 300px
+  :float left
+  :padding 0px
+  :margin-right 20px
+  
+#experiments
+  :width 210px
+  :height 300px
+  :background-color #2c2c2c
+  :color #bab9ad
+  :float left
+  :padding 10px
+  :font-family Arial
+  :font-size 11px
+  a
+    :color #bab9ad
+    :font-size 12px
+    :text-decoration none
+    &.active
+      :color #FFFFFF 
+
+#footer
+  :font-size 12px
+  :color #111111           
+  
+//lists
+#menu ul li
+  :float left
+  :padding-left 20px
+  :text-align right
+  
+#menu ul li a
+  :font-family Arial,Helvetica,sans-serif
+  :font-size 12px
+  :color #7e7e7e
+  :text-decoration none 
+  &:hover
+    :color #111111
+    :text-decoration underline
+    
+#experiments ul
+  :list-style square inside none    
+
+#experiments ul li
+  :margin-bottom 7px
+
+     
 a
   :color #444444
 a
@@ -31,31 +104,37 @@ a
     :color #444444
     
 a.expand
-  :color red
+  :color #008284
 
 span.cancertype
   :color grey
 
 body
-  :margin 20px
+  :margin 0px
   :font-family Helvetica,Arial,sans-serif !important
   :color #444444
   
 p 
   :margin 0 0 0.5em !important  
-  
+
+//Typography 
 h1
-  :color #0073EA
-  :font-size 24px  
+  :font-family Helvetica,Arial,sans-serif !important
+  :color #111111
+  :font-size 32px
+    
 h2
-  :color #FF0084
-  :font-size 18px
-  :margin-top 10px
-  :margin-bottom 5px 
+  :font-family Helvetica,Arial,sans-serif !important
+  :color #000000
+  :font-size 20px
+  :margin-top 5px
+  :margin-bottom 15px 
 h3
-  :font-size 16px  
-  :margin-top 10px
-  :margin-bottom 5px 
+  :font-family Helvetica,Arial,sans-serif !important
+  :color #FFFFFF
+  :font-size 15px
+  :margin-top 5px
+  :margin-bottom 15px 
   
 h4
   :font-size 12px  
@@ -68,17 +147,7 @@ h4
 thead th
   :background-color transparent
 
-#menu
-  :text-align right
-  :font-size 0.7em
-  p
-    :margin-bottom 5px 
-    :padding-top 5px 
-  a
-    +button()
-    :text-decoration none
-    &.active
-      :background-color #FF0084
+
       
 
 

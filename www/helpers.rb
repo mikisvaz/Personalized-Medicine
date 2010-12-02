@@ -141,7 +141,7 @@ def nci_diseases_summary(nci_diseases, html = true)
 end
 
 def pathway_details_summary(kegg_pathways)
-  return '' if kegg_pathways.nil?
+  return 'No pathways found' if kegg_pathways.nil?
   out =  ''
   kegg_pathways.collect do |code|
     desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
@@ -163,8 +163,7 @@ def pathway_details_summary(kegg_pathways)
 end
 
 def drug_details_summary(matador_drugs,pgkb_drugs,nci_drugs)
-  return '' if (matador_drugs.nil? && pgkb_drugs.nil?  && nci_drugs.nil? )
-
+  return 'No drugs found' if (!(matador_drugs || []).any? && !(pgkb_drugs || []).any? && !(nci_drugs || []).any? )
   out =  ''
   if ((matador_drugs || []).any?)
     matadorOut = '<dt><b>MATADOR drugs (Full list)</b></dt><dd>'
