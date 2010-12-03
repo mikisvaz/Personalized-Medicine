@@ -146,18 +146,19 @@ def pathway_details_summary(kegg_pathways)
   kegg_pathways.collect do |code|
     desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
     out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='height:50px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
-    out += "<h3>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></h3>"
+    out += "<p>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></p>"
     name = ''
     cancers = TSV.zip_fields($anais[code])
     if (cancers.size != 0)
-      out += '<h4>This pathway has more mutations than expected by chance in the following tumour types</h4>'
+      out += '<p>This pathway has more mutations than expected by chance in the following tumour types</p>'
       cancers.each do |p|
         cancer, type, score, desc2 = p
         css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
         out += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span> "
       end
     end
-    out += '<div style="height:30px;">&nbsp;</div>'
+    out += '<div class="clearfix"></div>'
+    out += '<div style="height:10px;">&nbsp;</div>'
   end
   out
 end
