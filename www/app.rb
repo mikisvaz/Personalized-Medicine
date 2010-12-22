@@ -120,7 +120,12 @@ get '/experiments/*' do
   
   if check_logged_user('','')
     
-    file = params[:splat].first || 'Exclusive'
+    if params[:splat] and params[:splat].first and not params[:splat].first.empty?
+      file = params[:splat].first 
+    else
+      file = "Exclusive"
+    end
+
     data, table_config = data(file)
   
     @flextable =  FlexTable.new(data, table_config)
