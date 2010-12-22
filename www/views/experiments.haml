@@ -7,10 +7,10 @@
     - $table_config.keys.sort.each do |file|
       - if file == @file
         %li
-          %a.active(href="/#{ file }")= file
+          %a.active(href="/experiments/#{ file }")= file
       - else
         %li
-          %a(href="/#{ file }")= file
+          %a(href="/experiments/#{ file }")= file
 %div{:class => 'clearfix'}
 
 

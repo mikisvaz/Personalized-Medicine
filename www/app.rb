@@ -116,11 +116,11 @@ post '/login-user' do
 end
 
 
-get '/experiments/' do
+get '/experiments/*' do
   
   if check_logged_user('','')
     
-    file = 'Exclusive'
+    file = params[:splat].first || 'Exclusive'
     data, table_config = data(file)
   
     @flextable =  FlexTable.new(data, table_config)
