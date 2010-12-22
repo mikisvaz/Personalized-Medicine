@@ -1,44 +1,27 @@
-%div#container
-  %div#loading Loading...
-  %div#logo
-    %h1#header Personalized <b style="color:#008284">Medicine</b>
-  %div#menu
-    %ul
-      %li <a href="">Home</a>
-      %li <a href="">Experiments</a>
-      %li <a href="">Methodology</a>
-      %li <a href="mailto:mikisvaz@gmail.com,vdelatorre@cnio.es">Contact</a>
-  %div{:class => 'clearfix'}  
-  %table{:id => "summary_table",:style => "display:none"}
-  %div#genecard
-    
-  %div#experiments 
-    %h3 SELECT YOUR EXPERIMENT
-    %ul#file_selection
-      - $table_config.keys.sort.each do |file|
-        - if file == @file
-          %li
-            %a.active(href="/#{ file }")= file
-        - else
-          %li
-            %a(href="/#{ file }")= file
-  %div{:class => 'clearfix'}
-  %div#footer 
-    Structural Biology and Biocomputing Group, CNIO      
-  
-  
+%div{:style=> 'width:784px;height:230px;float:left;margin-right:10px;margin-bottom:20px;'}
+  %img{:src => '/images/pm-front.jpg'}
+%div{:style=> 'width:230px;height:230px;float:left;background-color:#2c2c2c'}
+%div{:class => 'clearfix'}
+%div{:style=> 'width:387px;float:left;margin-right:10px;'}
+  %h2
+    What is personalized medicine?
+  %hr  
+  %p
+    Personalized medicine is a term that describes the use of individual characteristics of each patient to predict the susceptibility of the patient to a particular disease and the response to a subset of drugs. After the sequencing of the first human genome in 2003 several studies has shown that each individual presents a collection of mutations that affect the susceptibility of the individual to certain diseases and also the response to different treatments. 
+  %p
+    The goal of personalized medicine is to use the information about mutations found in the patient's genome to propose an appropriate treatment for a given disease.  In the past years these studies has been done using only the information provided by few mutations in the genome that are called biomarkers. Currently the reduce of the sequencing techniques costs starts to make possible the use of all the mutations present in the genome which could produce more accurate results.  
 
-  
+  %br
+%div{:style=> 'width:387px;float:left;margin-right:10px;margin-right:10px;'}
+  %h2
+    About this application
+  %hr   
+  %p
+    The goal of this application is to provide a framework to analyze the results obtained from full-exon sequencing experiments from the personalized medicine point of view. For each patient we try to estimate the background disease risk and the drug response.
+  %p
+    We also focus on the differential mutation profile in different cell lines corresponding to the disease (normally cancer cells) and the control (blood cells) in order to retrieve those drugs that could be valid to the disease treatment taking in account the background disease risk and drug response previously computed. 
+     
+%div{:style=> 'width:230px;float:left;'}
+%div{:class => 'clearfix'}
 
-  
-:javascript
-  $("#loading").ajaxStart(function() { $(this).css('visibility','visible') });
-  $("#loading").ajaxStop(function() { $(this).css('visibility','hidden') });
-  genecard_href = '/genecard/' + '#{@file}';
-  function exportToExcell(){
-    $(location).attr('href',"/excel/#{ @file }");
-  }
-  
-  $('#summary_table').flexigrid(
-    #{ @flextable.flexicode(("/data/" + @file).gsub(/,/,",\n"),:sortname => 'Drugs', :buttons => [{:name => "Export to Excel", :bclass => "add", :onpress =>"CALLBACK"}]).sub(/"CALLBACK"/,'exportToExcell')}
-  )
+

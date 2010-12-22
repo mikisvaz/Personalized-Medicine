@@ -1,6 +1,26 @@
 require 'cgi'
 require 'rbbt/sources/entrez'
 
+
+def check_logged_user(user,password)
+  
+  users = [{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe'}]
+  
+  if session[:user].include? :user
+    return true;
+  else
+    if (user && password)
+       users.each do |u|
+        if (user == u[:user] && password == u[:password])
+          session[:user] = u
+          return true
+        end
+       end  
+    end 
+  end  
+  return false    
+end
+
 def gene_info(data, gene)
   data.each do |key, value|
     field_name = value.fields.include?("Gene")? "Gene" : "Name"

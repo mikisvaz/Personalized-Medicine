@@ -76,7 +76,7 @@ field "Severity", :width => 50 do
   end
 end
 
-field "Prediction", :display => "SIFT", :width => 80 do
+field "Prediction", :display => "SIFT", :width => 80 ,:hide => true do
   sort_by do |key, value|
     case
     when value["Prediction"].first =~ /Low confidence/
@@ -92,7 +92,7 @@ field "Prediction", :display => "SIFT", :width => 80 do
 
 end
 
-field "Polyphen", :width => 60 do
+field "Polyphen", :width => 60, :hide => true do
   show do |key, value|
     if value["Polyphen"]
       first value["Polyphen"]["prediction"]
@@ -119,7 +119,7 @@ field "Polyphen", :width => 60 do
   end
 end
 
-field "SNP&GO", :width => 60 do
+field "SNP&GO", :width => 60 ,:hide => true do
   show do |key, value|
     if value["SNP&GO"]
       first(value["SNP&GO"]["Disease?"])
@@ -144,7 +144,7 @@ field "SNP&GO", :width => 60 do
 end
 
 
-field "FireDB", :width => 40, :align =>'center' do
+field "FireDB", :width => 40, :align =>'center', :hide => true do
   show do |key, value|
     if value["FireDB"]
       first value["FireDB"]["Disease?"]

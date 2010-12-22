@@ -5,8 +5,8 @@ require 'per_med'
 require 'table'
 require 'digest/md5'
 require 'rbbt/util/cachehelper'
-
 require 'helpers'
+enable :sessions
 
 def digest(str)
   Digest::MD5.hexdigest(str)
@@ -101,15 +101,43 @@ post '/data/:file' do
   data = {:page => page.to_i, :total => data.size, :rows => rows}.to_json
 end
 
-get '/*' do
-  file = params[:splat].first 
-  file = 'Exclusive' if file.empty?
-
-  data, table_config = data(file)
-
-  @flextable =  FlexTable.new(data, table_config)
-  @file = file
-
-  haml :index
+post '/login-user' do
+  
+  user        = params[:user]      || ''
+  passwd      = params[:password]  || ''
+  
+  if (user != '' and passwd != '')
+    
+    msg = (check_logged_user(user,passwd))?'Welcome '+user+', please check your <a href="/experiments/">experiments list</a>':'Invalid user or password'
+    haml :login, :locals => {:msg => msg} 
+  else
+    haml :login, :locals => {:msg => 'Please provide your user and password'}
+  end     
 end
 
+
+get '/experiments/' do
+  
+  if check_logged_user('','')
+    
+    file = 'Exclusive'
+    data, table_config = data(file)
+  
+    @flextable =  FlexTable.new(data, table_config)
+    @file = file
+  
+    haml :experiments, :layout => true 
+  else
+      haml :login, :layout => true , :locals => {:msg => ''}
+  end
+end
+
+get '/methodology' do
+  haml :methodology, :layout => true 
+end
+
+get '/' do
+  logout       = params[:logout] || ''
+  session[:user] = {} if logout
+  haml :index, :layout => true 
+end
