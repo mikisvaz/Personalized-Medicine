@@ -1,0 +1,27 @@
+%div
+  %p You need a user and password to access this area. Please <a href="mailto:mikisvaz@gmail.com, vdelatorre@cnio.es">contact us</a> in case you haven't received your credentials.
+    
+%form{:action => '/login-user', :method => 'post' }
+  %table{:class => 'login'}
+    - if (msg != '')
+      %tr
+        %td{:colspan => 2}
+          %div{:class => 'msg'}
+            #{msg}  
+    - if (!session[:user].include? :user)
+      %tr
+        %td
+          User 
+        %td
+          %input{:type =>'text' ,:name => 'user'}
+      %tr
+        %td
+          Password 
+        %td
+          %input{:type =>'password',:name => 'password'} 
+      %tr
+        %td
+          &nbsp; 
+        %td
+          %input{:type =>'submit',:value => 'Login'}
+           

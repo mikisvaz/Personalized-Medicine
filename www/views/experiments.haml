@@ -1,0 +1,28 @@
+%table{:id => "summary_table",:style => "display:none"}
+%div#genecard
+  
+%div#experiments 
+  %h3 SELECT YOUR EXPERIMENT
+  %ul#file_selection
+    - $table_config.keys.sort.each do |file|
+      - if file == @file
+        %li
+          %a.active(href="/#{ file }")= file
+      - else
+        %li
+          %a(href="/#{ file }")= file
+%div{:class => 'clearfix'}
+
+
+  
+:javascript
+  $("#loading").ajaxStart(function() { $(this).css('visibility','visible') });
+  $("#loading").ajaxStop(function() { $(this).css('visibility','hidden') });
+  genecard_href = '/genecard/' + '#{@file}';
+  function exportToExcell(){
+    $(location).attr('href',"/excel/#{ @file }");
+  }
+  
+  $('#summary_table').flexigrid(
+    #{ @flextable.flexicode(("/data/" + @file).gsub(/,/,",\n"),:sortname => 'Drugs', :buttons => [{:name => "Export to Excel", :bclass => "add", :onpress =>"CALLBACK"}]).sub(/"CALLBACK"/,'exportToExcell')}
+  )
