@@ -4,7 +4,7 @@ require 'rbbt/sources/organism'
 module PersonalizedMedicine
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
   DATA_DIR = File.join(ROOT_DIR, 'data')
-  TSV.cache_dir = File.join(ROOT_DIR, 'cache','tsv')
+  TSV.cachedir = File.join(ROOT_DIR, 'cache','tsv')
 
   def self.get_db_info(gene, path, options)
     format = options.collect{|opt| opt =~ /^field\[(.*?)\]/; $1}.compact.first
@@ -68,8 +68,8 @@ module PersonalizedMedicine
     data = TSV.new(filename, :native => 'Position1', :keep_empty => true)
 
 
-    gene_names        = data.slice(*GENE_FIELDS)
-    mutations          = data.slice(*MUTATION_FIELDS)
+    gene_names        = data.slice(GENE_FIELDS)
+    mutations          = data.slice(MUTATION_FIELDS)
 
     snp      = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :native => 'Mutation', :keep_empty => true)
     polyphen = TSV.new(File.join(DATA_DIR,'Polyphen','polyphen'), :native => 'id', :keep_empty => true)
