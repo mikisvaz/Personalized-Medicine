@@ -199,7 +199,7 @@ if __FILE__ == $0
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
   #profile do
-  t = PersonalizedMedicine.Raquel_Patient File.join(File.dirname(__FILE__), '../www/data/Raquel.tsv')
+  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
   p t.fields
   #end
 end

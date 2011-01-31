@@ -4,13 +4,13 @@ require 'rbbt/sources/entrez'
 
 def check_logged_user(user,password)
   
-  users = [{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe'}]
+  $users = [{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe', :experiments => ['Preal']}]
   
   if session[:user].include? :user
     return true;
   else
     if (user && password)
-       users.each do |u|
+       $users.each do |u|
         if (user == u[:user] && password == u[:password])
           session[:user] = u
           return true

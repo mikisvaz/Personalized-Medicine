@@ -23,6 +23,8 @@ $table_config = {
   'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
   'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
+  'Preal'   => [File.join(SINATRA, 'data/Preal.tsv'), File.join(SINATRA, 'table_config/ngs.rb')]
+
 }
 
 def data(file)
@@ -131,7 +133,7 @@ get '/experiments/*' do
     @flextable =  FlexTable.new(data, table_config)
     @file = file
   
-    haml :experiments, :layout => true 
+    haml :experiments, :layout => true
   else
       haml :login, :layout => true , :locals => {:msg => ''}
   end
