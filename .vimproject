@@ -46,9 +46,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
    _patients.haml
    _summary.haml
    _tabs.haml
+   experiments.haml
    index.haml
    layout.haml
-   results.haml
+   login.haml
+   methodology.haml
    gene=gene{
     _firedb.haml
     _matador.haml

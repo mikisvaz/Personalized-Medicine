@@ -13,9 +13,9 @@ def digest(str)
 end
 SINATRA = Sinatra::Application.root
 
-$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single => true, :persistence => true)
-$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'), :extra => 'Name', :single => true, :persistence => true)
-$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'), :field => 'Name', :single => true, :persistence => true)
+$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single, :persistence => true)
+$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'),    :single, :extra => 'Name',:persistence => true)
+$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
 
 $table_config = {
   'Metastasis'   => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
@@ -23,7 +23,8 @@ $table_config = {
   'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
   'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
-  'Preal'   => [File.join(SINATRA, 'data/Preal.tsv'), File.join(SINATRA, 'table_config/ngs.rb')]
+  '1035'        => [File.join(SINATRA, 'data/1035.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Esp66'   => [File.join(SINATRA, 'data/Esp66.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
 
 }
 
@@ -40,6 +41,10 @@ def data(file)
       [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
     when 'Raquel_Patient'
       [PersonalizedMedicine.Raquel_Patient($table_config[file].first), $table_config[file].last]
+    when '1035'
+      [PersonalizedMedicine.NGS_Preal($table_config[file].first), $table_config[file].last]
+    when 'Esp66'
+      [PersonalizedMedicine.NGS_Preal($table_config[file].first), $table_config[file].last]
     end
   end
 end
@@ -125,17 +130,18 @@ get '/experiments/*' do
     if params[:splat] and params[:splat].first and not params[:splat].first.empty?
       file = params[:splat].first 
     else
-      file = "Exclusive"
+     file = $users.select{|info| info[:user] == session[:user][:user]}.first[:experiments].first
     end
-
+    
     data, table_config = data(file)
+
   
     @flextable =  FlexTable.new(data, table_config)
     @file = file
   
     haml :experiments, :layout => true
   else
-      haml :login, :layout => true , :locals => {:msg => ''}
+    haml :login, :layout => true , :locals => {:msg => ''}
   end
 end
 

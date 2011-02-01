@@ -4,7 +4,7 @@ require 'rbbt/sources/entrez'
 
 def check_logged_user(user,password)
   
-  $users = [{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe', :experiments => ['Preal']}]
+  $users = [{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe', :experiments => ['1035','Esp66']}]
   
   if session[:user].include? :user
     return true;
@@ -29,13 +29,16 @@ def gene_info(data, gene)
 end
 
 def entrez(gene)
-  i = TSV.index(File.join(Organism.datadir('Hsa'), 'identifiers'), :persistence => true)
-  return nil if i[gene].nil?
-  i[gene].first
+  i = Organism::Hsa.identifiers.index :persistence =>  true, :target => "Entrez Gene ID", :data_persistence =>  true
+  trans = i.values_at(*gene)
+  ddd trans
+  return nil if trans.nil?
+  trans.flatten.compact.first
 end
 
 def entrez_info(gene)
   entrez = entrez(gene)
+  ddd entrez
   marshal_cache('entrez_info', entrez) do
     Entrez.get_gene(entrez)
   end
