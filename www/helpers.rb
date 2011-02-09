@@ -1,5 +1,7 @@
 require 'cgi'
 require 'rbbt/sources/entrez'
+require 'rbbt/sources/kegg'
+require 'rbbt/sources/cancer'
 
 
 def check_logged_user(user,password)
@@ -31,13 +33,11 @@ end
 def entrez(gene)
   i = Organism::Hsa.identifiers.index :persistence =>  true, :target => "Entrez Gene ID", :data_persistence =>  true
   trans = i.values_at(*gene)
-  ddd trans
   return nil if trans.nil?
   trans.flatten.compact.first
 end
 
 def entrez_info(gene)
-  entrez = entrez(gene)
   ddd entrez
   marshal_cache('entrez_info', entrez) do
     Entrez.get_gene(entrez)
@@ -80,24 +80,26 @@ end
 def mutation_severity_summary(mutation)
   count = 0
 
-  count += 1 if first(mutation["Prediction"])
-  count += 1 if mutation["SNP&GO"] and first(mutation["SNP&GO"]["Disease?"]) == 'Disease'
-  count += 1 if mutation["Polyphen"] and first(mutation["Polyphen"]["prediction"]) =~ /damaging/
+  count += 1 if first(mutation["SIFT:Prediction"])
+  count += 1 if first(mutation["SNP&GO:Disease?"]) == 'Disease'
+  count += 1 if first(mutation["Polyphen:prediction"]) =~ /damaging/
 
-    count
+  count
 end
 
 def kegg_summary(pathways, html = true)
   return [] if pathways.nil?
   pathways.collect do |code|
-    desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
+    desc = $kegg[code]["Pathway Name"].sub(/- Homo sapiens.*/,'')
     cancer = ''
     if html
-      TSV.zip_fields($anais[code]).each do |p|
-        cancer, type, score, desc2 = p
+      entries = $anais[code]
+      entries.zip_fields.each do |cancer, type, score, desc2|
+      #TSV.zip_fields($anais[code]).each do |p|
+      #  cancer, type, score, desc2 = p
         css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
         cancer += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span>"
-      end
+      end if entries
       "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc} #{ cancer }</a>"
     else
       desc 
@@ -107,7 +109,7 @@ end
 
 
 def matador_summary(matador_drugs, html = true)
-  return [] if matador_drugs.nil?
+  return [] if matador_drugs.empty?
   matador_drugs.collect do |d|
     name, id, score, annot, mscore, mannot = d
     if html
@@ -123,9 +125,9 @@ def pharmagkb_summary(pgkb_drugs, html = true)
   return [] if pgkb_drugs.nil?
   pgkb_drugs.collect do |d|
     if html
-      "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]}</a> [PGKB]"
+      "<a target='_blank' href='http://www.pharmgkb.org/do/serve?objCls=Drug&objId=#{d.first}'>#{$PharmaGKB_drug_index[d.first]["Drug Name"]}</a> [PGKB]"
     else
-      $PharmaGKB_drug_index[d.first]
+      $PharmaGKB_drug_index[d.first]["Drug Name"]
     end
   end
 end
@@ -143,24 +145,20 @@ end
 
 def cancer_genes_summary(cancers, html = true)
   return [] if cancers.nil?
-  cancers.collect do |c|
+  cancers.first.collect do |c|
     if html
-      "<span>#{c}</span>"
+      "<span>#{c} [C]</span>"
+    else
+      c
+    end
+  end + 
+  cancers.last.collect do |c|
+    if html
+      "<span>#{c} [NCI]</span>"
     else
       c
     end
   end
-end
-
-def nci_diseases_summary(nci_diseases, html = true)
-  return [] if nci_diseases.nil?
-  nci_diseases.collect do |c|
-    if html
-      "<span>#{c.first}</span>"
-    else
-      c.first
-    end
-  end.uniq
 end
 
 def pathway_details_summary(kegg_pathways)

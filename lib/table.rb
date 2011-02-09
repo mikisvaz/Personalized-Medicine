@@ -65,8 +65,8 @@ class FlexTable
       case
       when String === values[pos]
         values[pos]
-      when Array === values[pos] && values[pos].size == 1
-        values[pos].first
+      when Array === values[pos]
+        values[pos] * "|"
       else
         values[pos].inspect
       end

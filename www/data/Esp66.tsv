@@ -1,4 +1,4 @@
-#Chr	Position1		Ref Genome Allele	Variant Allele	QUAL		INFO		File 1	File 2		Gene Name		SIFT input	Coordinates	Codons	Prediction	Ubio Score	Median Info	# Seqs at position	User Comment	SNP Type
+#Chr	Position1		Ref Genome Allele	Variant Allele	QUAL		INFO		File 1	File 2		Gene Name		SIFT input	Coordinates	Codons	SIFT:Prediction	Ubio Score	Median Info	# Seqs at position	User Comment	SNP Type	SIFT:Score	Substitution	OMIM Disease
 1	116944164	.	G	A	99	.	DP=75;AF1=0.5;CI95=0.5,0.5;DP4=14,33,15,10;MQ=42;PV4=0.022,4.2e-17,1.8e-14,0.013	PL:GT:GQ	62,0,255:0/1:65	80,0,255:0/1:83	NULL	ENSG00000143061|IGSF3		1,116944164,1,G/A	1,116944164,1,G/A	CGG-tGG	DAMAGING	0.03	3.08	7		.
 1	116944223	.	C	A	99	.	DP=41;AF1=0.5;CI95=0.5,0.5;DP4=4,18,1,18;MQ=40;PV4=0.35,4.6e-12,9e-07,0.5	PL:GT:GQ	73,0,199:0/1:76	145,0,255:0/1:99	NULL	ENSG00000143061|IGSF3		1,116944223,1,C/A	1,116944223,1,C/A	AGC-AtC	TOLERATED	0.5	2.96	8		.
 1	12633838	.	G	A	99	.	DP=202;AF1=0.5;CI95=0.5,0.5;DP4=41,62,35,53;MQ=47;PV4=1,4.6e-79,0.012,0.13	PL:GT:GQ	229,0,255:0/1:99	230,0,255:0/1:99	NULL	ENSG00000204518|AADACL4		1,12633838,1,G/A	1,12633838,1,G/A	CGT-CaT	TOLERATED	0.47	3.09	10		.

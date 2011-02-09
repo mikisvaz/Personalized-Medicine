@@ -1,4 +1,4 @@
-#UniProt/SwissProt Accession	Mutation	Original	Position	Substitution	Disease?	Comment
+#Hsa:UniProt/SwissProt Accession	Substitution	Original	Position	Substitution	Disease?	Comment
 Q8NDQ6	C584*	C	584	*	Y	ZINC ION
 P54707	A745T	A	745	T	Y	POTASSIUM ION
 Q5GAN4	E65G	E	65	G	Y	PHOSPHORIC ACID MONO-[2-(2,4-DIOXO-3,4-DIHYDRO-2H-PYRIMIDIN-1-YL)-4-HYDROXY-5-HYDROXYMETHYL-TETRAHYDRO-FURAN-3-YL] ESTER

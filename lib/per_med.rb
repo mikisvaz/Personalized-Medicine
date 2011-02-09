@@ -1,5 +1,11 @@
 require 'rbbt-util'
 require 'rbbt/sources/organism'
+require 'rbbt/sources/kegg'
+require 'rbbt/sources/pharmagkb'
+require 'rbbt/sources/matador'
+require 'rbbt/sources/string'
+require 'rbbt/sources/nci'
+require 'rbbt/statistics/hypergeometric'
 
 module PersonalizedMedicine
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
@@ -128,7 +134,76 @@ module PersonalizedMedicine
     mutation_data
   end
 
+  def self.chromosome_bed
+    return @chromosome_bed if defined? @chromosome_bed
+
+    @chromosome_bed = {}
+
+    %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y).collect do |chromosome|
+      chromosome_bed[chromosome] = Persistence.persist(Organism::Hsa.gene_positions, "Gene_positions[#{chromosome}]", :fwt, :chromosome => chromosome, :range => true) do |file, options|
+        tsv = file.tsv(:persistence => true, :type => :list)
+        tsv.select("Chromosome Name" => chromosome).collect do |gene, values|
+          [gene, values.values_at("Gene Start", "Gene End").collect{|p| p.to_i}]
+        end
+      end
+    end
+
+    @chromosome_bed
+  end
+
   def self.NGS(filename)
+    fields = ["Chr", "Ref Genome Allele", "Variant Allele", "Ubio Score",  "Substitution", "SNP Type", "SIFT:Prediction", "SIFT:Score", "OMIM Disease"]
+
+    data = Persistence.persist(filename, :Misc, :tsv_string, :persistence_update => true) do |file, options, filename|
+      data = TSV.new(file, :key => 'Position1', :fields => fields, :keep_empty => true)
+
+      data.add_field "Ensembl Gene ID" do |position, values|
+        chromosome = values["Chr"].first
+        next if chromosome_bed[chromosome].nil?
+        chromosome_bed[chromosome][position]
+      end
+
+      data.namespace = "Hsa"
+      data.identifiers = Organism::Hsa.identifiers
+
+      Organism::Hsa.attach_translations(data, "Associated Gene Name")
+      Organism::Hsa.attach_translations(data, "Entrez Gene ID")
+
+      snp      = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :key => 'Substitution', :keep_empty => true, :namespace => "SNP&GO")
+      polyphen = TSV.new(File.join(DATA_DIR,'Polyphen','polyphen'), :key => 'Substitution', :keep_empty => true, :namespace => "Polyphen")
+      firedb   = TSV.new(File.join(DATA_DIR,'FireDB','firedb'), :key => 'Substitution', :keep_empty => true, :namespace => "FireDB")
+
+      data.attach snp
+      data.attach polyphen
+      data.attach firedb
+
+      data.attach KEGG.gene_drug
+      data.attach KEGG.gene_pathway
+      data.attach KEGG.pathways, nil, :in_namespace => "KEGG"
+      data.attach Matador.protein_drug
+      data.attach PharmaGKB.gene_drug
+      data.attach PharmaGKB.gene_disease
+      data.attach PharmaGKB.gene_pathway
+      data.attach NCI.gene_drug
+      data.attach NCI.gene_cancer
+      data.attach Cancer.anais_annotations
+
+      data
+    end
+
+    #data.enrichment_for(KEGG.gene_pathway,  "KEGG Pathway ID", :cutoff => 0.05).each do |pathway, pvalue|
+    #  puts "----------------------------------------"
+    #  puts "Pathway: #{ pathway }. Pvalue #{pvalue}."
+    #  puts "Desc: #{KEGG.pathways.tsv(:type => :list)[pathway]["Description"]}"
+    #  puts
+    #  puts data.select("KEGG:KEGG Pathway ID" => pathway).slice("Associated Gene Name").values.flatten * ", "
+    #end
+
+
+    data
+  end
+
+  def self.NGS2(filename)
     data = TSV.new(filename, :key => 'Position1', :keep_empty => true)
 
 
@@ -262,9 +337,8 @@ end
 if __FILE__ == $0
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  profile do
-  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis2.tsv')
-  p t.fields
-  end
+  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
+  puts t.slice_namespace("PharmaGKB").to_s
+  Open.write('/tmp/test.tsv', t.to_s)
 end
 

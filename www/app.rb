@@ -13,19 +13,23 @@ def digest(str)
 end
 SINATRA = Sinatra::Application.root
 
-$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single, :persistence => true)
-$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'),    :single, :extra => 'Name',:persistence => true)
-$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
+$anais = Cancer.anais_annotations.tsv(:persistence => true)
+$kegg = KEGG.pathways.tsv(:persistence => true, :type => :list)
+$PharmaGKB_drug_index = PharmaGKB.drugs.tsv(:persistence => true, :type => :list)
+
+#$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
+#$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single, :persistence => true)
+#$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'),    :single, :extra => 'Name',:persistence => true)
+#$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
 
 $table_config = {
-  'Metastasis'   => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
-  'NoMetastasis' => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
-  'Exclusive'    => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
-  'Raquel'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
-  'Raquel_Patient'       => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
-  '1035'        => [File.join(SINATRA, 'data/1035.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
-  'Esp66'   => [File.join(SINATRA, 'data/Esp66.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
-
+  'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Exclusive'      => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Raquel'         => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
+  'Raquel_Patient' => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
+  '1035'           => [File.join(SINATRA, 'data/1035.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Esp66'          => [File.join(SINATRA, 'data/Esp66.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
 }
 
 def data(file)
@@ -42,9 +46,9 @@ def data(file)
     when 'Raquel_Patient'
       [PersonalizedMedicine.Raquel_Patient($table_config[file].first), $table_config[file].last]
     when '1035'
-      [PersonalizedMedicine.NGS_Preal($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'Esp66'
-      [PersonalizedMedicine.NGS_Preal($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     end
   end
 end
@@ -78,7 +82,7 @@ get '/genecard/:file' do
  
   locals = {
   	:file => file,
-    :entrez => entrez(gene), 
+    :entrez => gene, 
     :name => gene, 
     :gene_info => gene_info(data, gene),
     :patient_info => patient_info(data, gene),

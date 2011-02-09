@@ -1,4 +1,4 @@
-#UniProt/SwissProt Accession	id	acc	pos	aa1	aa2	prediction	pph2_prob	pph2_FPR	pph2_TPR	Comments
+#Hsa:UniProt/SwissProt Accession	Substitution	acc	pos	aa1	aa2	prediction	pph2_prob	pph2_FPR	pph2_TPR	Comments
 O15119	D337Y	O15119	337	D	Y	probably damaging	1	0	0.000824	
 O15123	W322G	O15123	322	W	G	probably damaging	1	0	0.000824	
 O60725	W216G	O60725	216	W	G	probably damaging	1	0	0.000824	
