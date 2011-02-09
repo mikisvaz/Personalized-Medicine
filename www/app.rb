@@ -17,11 +17,6 @@ $anais = Cancer.anais_annotations.tsv(:persistence => true)
 $kegg = KEGG.pathways.tsv(:persistence => true, :type => :list)
 $PharmaGKB_drug_index = PharmaGKB.drugs.tsv(:persistence => true, :type => :list)
 
-#$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
-#$anais                = TSV.new(File.join(SINATRA, '../data/CancerGenes/anais-annotations.txt'), :single, :persistence => true)
-#$kegg_pathway_index   = TSV.new(File.join(SINATRA, '../data/KEGG/pathways'),    :single, :extra => 'Name',:persistence => true)
-#$PharmaGKB_drug_index = TSV.new(File.join(SINATRA, '../data/PharmaGKB/drugs'),  :single, :field => 'Name',:persistence => true)
-
 $table_config = {
   'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
@@ -73,21 +68,20 @@ end
 get '/genecard/:file' do 
   file = params[:file] || 'Exclusive'
   gene = params[:gene]
-  gene = gene.split(/_/) if gene =~ /_/
- 
+
   file = 'Raquel' if file == 'Raquel_Patient'
 
   data, table_config = data(file)
-
+  info   = data.select("Ensembl Gene ID" => [gene]).values.first
+  entrez = info["Entrez Gene ID"].first
  
   locals = {
   	:file => file,
-    :entrez => gene, 
-    :name => gene, 
-    :gene_info => gene_info(data, gene),
-    :patient_info => patient_info(data, gene),
-    :description => entrez_info(gene).description.flatten.first,
-    :summary => entrez_info(gene).summary.flatten.first,
+    :name => info["Associated Gene Name"],
+    :info => info,
+    :entrez => entrez,
+    :description => entrez_info(entrez).description.flatten.first,
+    :summary => entrez_info(entrez).summary.flatten.first,
   }
   
   

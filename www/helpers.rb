@@ -23,31 +23,9 @@ def check_logged_user(user,password)
   return false    
 end
 
-def gene_info(data, gene)
-  data.each do |key, value|
-    field_name = value.fields.include?("Gene")? "Gene" : "Name"
-    return value["Gene Info"] if value[field_name] == gene 
-  end
-end
-
-def entrez(gene)
-  i = Organism::Hsa.identifiers.index :persistence =>  true, :target => "Entrez Gene ID", :data_persistence =>  true
-  trans = i.values_at(*gene)
-  return nil if trans.nil?
-  trans.flatten.compact.first
-end
-
-def entrez_info(gene)
-  ddd entrez
+def entrez_info(entrez)
   marshal_cache('entrez_info', entrez) do
     Entrez.get_gene(entrez)
-  end
-end
-
-def patient_info(data, gene)
-  return nil if ! data.fields.include? "Name"
-  data.each do |key, value|
-    return value["Patients"] if value['Name'] == gene 
   end
 end
 
@@ -55,15 +33,14 @@ def first(array)
   (array || [""]).first
 end
 
-def genecard_trigger(gname, text)
+def genecard_trigger(text, ensembl)
   gname = [gname] unless Array === gname
   if gname.last =~ /UNKNOWN/
     text
   else
-    "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{gname * "_"}\");return(false);'>#{text}</a>"
+    "<a class='genecard_trigger' href='/ajax/genecard' onclick='update_genecard(\"#{ensembl}\");return(false);'>#{text}</a>"
   end
 end
-
 
 def list_summary(list)
   return list unless Array === list
@@ -165,12 +142,12 @@ def pathway_details_summary(kegg_pathways)
   return 'No pathways found' if kegg_pathways.nil?
   out =  ''
   kegg_pathways.collect do |code|
-    desc = $kegg_pathway_index[code].sub(/- Homo sapiens.*/,'')
+    desc = $kegg[code]["Pathway Name"].sub(/- Homo sapiens.*/,'')
     out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='height:50px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
     out += "<p>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></p>"
     name = ''
     cancers = TSV.zip_fields($anais[code])
-    if (cancers.size != 0)
+    if cancers.any?
       out += '<p>This pathway has more mutations than expected by chance in the following tumour types</p>'
       cancers.each do |p|
         cancer, type, score, desc2 = p
@@ -184,7 +161,7 @@ def pathway_details_summary(kegg_pathways)
   out
 end
 
-def drug_details_summary(matador_drugs,pgkb_drugs,nci_drugs)
+def drug_details_summary(matador_drugs, pgkb_drugs, nci_drugs)
   return 'No drugs found' if (!(matador_drugs || []).any? && !(pgkb_drugs || []).any? && !(nci_drugs || []).any? )
   out =  ''
   if ((matador_drugs || []).any?)

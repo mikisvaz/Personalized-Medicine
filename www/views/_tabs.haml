@@ -15,16 +15,16 @@
   %div#tabs-0
     = haml :_gene, :layout => false, :locals => {:entrez => entrez,
                                                :name => name,
-                                               :gene_info => gene_info,
+                                               :info => info,
                                                :description => description,
                                                :summary => summary}  
   %div#tabs-1
-    = haml :_pathways, :layout => false, :locals => {:gene_info => gene_info}    
-  
+    = haml :_pathways, :layout => false, :locals => {:info => info}    
+
   %div#tabs-2
-    = haml :_drugs, :layout => false, :locals => {:gene_info => gene_info}  
-  
-  -if file == 'Raquel'
-    %div#tabs-3
-      = haml :_patients, :layout => false, :locals => {:patient_info => patient_info}  
+    = haml :_drugs, :layout => false, :locals => {:info => info}  
+
+-#  -if file == 'Raquel'
+-#    %div#tabs-3
+-#      = haml :_patients, :layout => false, :locals => {:info => info}  
 
