@@ -250,41 +250,53 @@ module PersonalizedMedicine
   end
 
   def self.Raquel(filename)
-    field_types = %w(type probability expression top5_loss top5_gain)
-    data = TSV.new(filename, :list)
+    data = Persistence.persist(filename, :Misc, :tsv_string, :persistence_update => true) do |file, options, filename|
+      data = TSV.new(file, :key => 'Ensembl Gene ID', :keep_empty => true)
 
-    patient_fields = {}
-    data.fields.each do |field|
-      if field =~ /(.*?)_(#{field_types * "|"})/
-        patient      = $1
-        field_type   = $2
-        patient_fields[patient] ||= {}
-        patient_fields[patient][field_type] = field
-      end
+    data.namespace = "Hsa"
+    data.identifiers = Organism::Hsa.identifiers
+
+    Organism::Hsa.attach_translations(data, "Associated Gene Name")
+    Organism::Hsa.attach_translations(data, "Entrez Gene ID")
+
+    type_fields = data.fields.select{|f| f =~ /_type/}.collect{|f| data.identify_field f}
+    data.add_field "Lost in Patients" do |key, values|
+        [values.values_at(*type_fields).flatten.select{|e| e == "Gain"}.length.to_s]
     end
     
-    new_data = TSV.new({})
-    data.each do |gene, info|
-      new_info = []
-      new_info.concat info.values_at(*%w(Name    Chromosome  Start   End))
-      new_info << get_gene_info(gene)
-
-      patient_info = {}
-      patient_fields.each do |patient, p_fields|
-        patient_info[patient] = {}
-
-        field_types.each do |type|
-          patient_info[patient][type] = info[p_fields[type]]
-        end
-      end
-
-      new_info << patient_info
-      new_data[gene] = new_info
+    data.add_field "Gained in Patients" do |key, values|
+         [values.values_at(*type_fields).flatten.select{|e| e == "Loss"}.length.to_s]
     end
-    new_data.fields =['Name', 'Chromosome', 'Start', 'End', 'Gene Info', 'Patients']
+    
+    loss_fields = data.fields.select{|f| f =~ /_top5_loss/}
+    loss_field_positions = loss_fields.collect{|f| data.identify_field f}
+    data.add_field "T5 Lost" do |key, values|
+        loss_fields.zip(values.values_at(*loss_field_positions).flatten).select{|f,v| v == "1"}.collect{|f,v| f.sub(/_top5_loss/,'')}
+    end
+    
+    gain_fields = data.fields.select{|f| f =~ /_top5_gain/}  
+    gain_field_positions = gain_fields.collect{|f| data.identify_field f}
+    data.add_field "T5 Gained" do |key, values|
+        gain_fields.zip(values.values_at(*gain_field_positions).flatten).select{|f,v| v == "1"}.collect{|f,v| f.sub(/_top5_gain/,'')}
+    end
+    
 
-    new_data
+   data.attach KEGG.gene_drug
+   data.attach KEGG.gene_pathway
+   data.attach KEGG.pathways, nil, :in_namespace => "KEGG"
+   data.attach Matador.protein_drug
+   data.attach PharmaGKB.gene_drug
+   data.attach PharmaGKB.gene_disease
+   data.attach PharmaGKB.gene_pathway
+   data.attach NCI.gene_drug
+   data.attach NCI.gene_cancer
+   data.attach Cancer.anais_annotations
+
+    
+    data
   end
+  data
+end  
 
   def self.Raquel_Patient(filename)
     field_types = %w(type probability expression top5_loss top5_gain)
@@ -337,8 +349,7 @@ end
 if __FILE__ == $0
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
-  puts t.slice_namespace("PharmaGKB").to_s
-  Open.write('/tmp/test.tsv', t.to_s)
+  t = PersonalizedMedicine.Raquel File.join(File.dirname(__FILE__), '../www/data/Raquel.tsv')
+  puts t.slice("T5 Gained").to_s
 end
 

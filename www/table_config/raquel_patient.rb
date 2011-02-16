@@ -36,11 +36,13 @@ end
 
 field "Top Gain Genes", :width => 300 do
   show do |key,values|
+    ddd values
     v = TSV.zip_fields(values)
     list = []
     v.each{|vv| if vv["top5_gain"] == "1";then list << vv.first end}.sort
     if $_table_format == 'html'
       list.collect{|name| genecard_trigger name, name } * ', ' 
+      genecard_trigger (values["Associated Gene Name"].first || key || "UNKNOWN"), key
     else
       list * ", "
     end
