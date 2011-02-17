@@ -72,7 +72,6 @@ get '/genecard/:file' do
   file = 'Raquel' if file == 'Raquel_Patient'
 
   data, table_config = data(file)
-  ddd data.select("Ensembl Gene ID" => [gene])
   info   = data.select("Ensembl Gene ID" => [gene]).values.first
   entrez = info["Entrez Gene ID"].first
  
