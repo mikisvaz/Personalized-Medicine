@@ -4,9 +4,9 @@
 
 %dl
   %dt Gained in Patients
-  %dd= patients_details_top5_patient_list(patient_info, true) 
+  %dd= patients_details_top5_patient_list(info, true) 
   %dt Lost in Patients
-  %dd= patients_details_top5_patient_list(patient_info, false) 
+  %dd= patients_details_top5_patient_list(info, false) 
 %br
 %dt 
   %b Expression data
@@ -18,5 +18,5 @@
       bars: { show: true }
     }
    };
-  #{patients_details_expression(patient_info)}
+  #{patients_details_expression(info)}
   $.plot($("#exp_plot"), [ expression ], options);    

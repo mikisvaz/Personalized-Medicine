@@ -200,13 +200,25 @@ def drug_details_summary(matador_drugs, pgkb_drugs, nci_drugs)
   out     
 end
 
-def patients_details_top5_patient_list(patient_info, gained = true)
-  return "Sorry, no information about patients found" if patient_info.nil?
+def patients_details_top5_patient_list(info, gained = true)
+  return "Sorry, no information about patients found" if info.nil?
+  field_types = %w(type probability expression top5_loss top5_gain)
   plist  = []
+
+  patient_info = {}
+  info.fields.each do |field|
+    if field =~ /(.*?)_(#{field_types * "|"})/
+      patient      = $1
+      field_type   = $2
+      patient_info[patient] ||= {}
+      patient_info[patient][field_type] = info[field]
+    end
+  end
+
   patient_info.select{|name, patient| (patient['type'] == 'Gain') == gained }.sort_by{|name, patient| name}.collect do |name,patient|
-    if patient['top5_gain'] != "0"
+    if patient['top5_gain'].first != "0"
       plist << '<span class="gain">' + name + '</span>'
-    elsif patient['top5_loss'] != "0"
+    elsif patient['top5_loss'].first != "0"
       plist << '<span class="loss">' + name + '</span>'
     else
       plist << name
@@ -215,12 +227,25 @@ def patients_details_top5_patient_list(patient_info, gained = true)
   plist * ', '    
 end
 
-def patients_details_expression(patient_info)
-  return "Sorry, no information about patients found" if patient_info.nil?
+def patients_details_expression(info)
+  return "Sorry, no information about patients found" if info.nil?
+  field_types = %w(type probability expression top5_loss top5_gain)
+  plist  = []
+
+  patient_info = {}
+  info.fields.each do |field|
+    if field =~ /(.*?)_(#{field_types * "|"})/
+      patient      = $1
+      field_type   = $2
+      patient_info[patient] ||= {'pos' => patient_info.size.to_s}
+      patient_info[patient][field_type] = info[field]
+    end
+  end
+
   out  = 'var expression = [';
   points = []
-  patient_info.sort_by{|name, patient| name}.collect do |name,patient|
-    points << '["' + name + '",' + patient['expression'] + ']'
+  patient_info.sort_by{|name, patient| name }.collect do |name,patient|
+    points << '["' + patient['pos'] + '",' + patient['expression'].first + ']'
   end 
   out << points * ',' 
   out << '];'
