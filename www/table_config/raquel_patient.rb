@@ -11,7 +11,7 @@ field "Top Lost Genes", :width => 300  do
 
     list = v.select{|vv| 
       vv[field_pos] == "1"
-    }.collect{|vv| [vv[ensembl_pos], vv[name_pos]]}
+    }.collect{|vv| [vv[ensembl_pos].first, vv[name_pos].first]}
     if $_table_format == 'html'
       list.collect{|ensembl,name| genecard_trigger name || ensembl || "UNKNOWN", ensembl } * ', ' 
     else
@@ -25,7 +25,7 @@ field "Top Lost Genes", :width => 300  do
     field_pos   = values.positions "top5_loss"
     list = v.select{|vv| 
       vv[field_pos] == "1"
-    }.collect{|vv| vv[ensembl_pos]}
+    }.collect{|vv| vv[ensembl_pos].first}
     list.sort * " "
   end
 end
@@ -53,7 +53,7 @@ field "Top Gained Genes", :width => 300  do
 
     list = v.select{|vv| 
       vv[field_pos] == "1"
-    }.collect{|vv| [vv[ensembl_pos], vv[name_pos]]}
+    }.collect{|vv| [vv[ensembl_pos].first, vv[name_pos].first]}
     if $_table_format == 'html'
       list.collect{|ensembl,name| genecard_trigger name || ensembl || "UNKNOWN", ensembl } * ', ' 
     else
@@ -67,7 +67,7 @@ field "Top Gained Genes", :width => 300  do
     field_pos   = values.positions "top5_gain"
     list = v.select{|vv| 
       vv[field_pos] == "1"
-    }.collect{|vv| vv[ensembl_pos]}
+    }.collect{|vv| vv[ensembl_pos].first}
     list.sort * " "
   end
 end
