@@ -1,4 +1,7 @@
 require 'cgi'
+require 'per_med'
+require 'rbbt/util/cachehelper'
+require 'rbbt/sources/organism'
 require 'rbbt/sources/entrez'
 require 'rbbt/sources/kegg'
 require 'rbbt/sources/cancer'
@@ -251,3 +254,148 @@ def patients_details_expression(info)
   out << '];'
 end
 
+require 'soap/wsdlDriver'               
+require 'base64'
+
+def sent_analysis(genes, format = nil)
+  PersonalizedMedicine.local_persist(genes.sort, "SENT", :marshal, :genes => genes.sort) do |genes, options|
+    format ||= Organism::Hsa.guess_id genes
+
+    tsv = TSV.new({})
+    tsv.type = :double
+    tsv.namespace = "Hsa"
+    tsv.identifiers = Organism::Hsa.identifiers
+    tsv.key_field = format
+    tsv.fields = []
+
+    genes.each do |gene| tsv[gene] = [] end
+
+    Organism::Hsa.attach_translations tsv, "Entrez Gene ID"
+
+    tsv.attach Organism::Hsa.gene_pmids
+
+    factors = case 
+              when genes.length < 100
+                genes.length / 10
+              when genes.length < 200
+                genes.length / 20
+              when genes.length < 500
+                genes.length / 50
+              else
+                20
+              end
+    driver = SOAP::WSDLDriverFactory.new("http://sent.dacya.ucm.es/wsdl/SentWS.wsdl").create_rpc_driver
+
+    job = driver.custom(tsv.reorder("Entrez Gene ID", "PMID").to_s(false).sub(/^#.*\n/,''), factors, "PerMed")
+    #job = "PerMed-13"
+    while not driver.done job
+      puts driver.status job
+      sleep 3
+    end
+
+    raise driver.messages(job).last if driver.error job
+
+    literature_job = driver.build_index(job, "PerMed_literature[#{job}]")
+    #literature_job = "PerMed_literature[#{job}]"
+    results = driver.results job
+
+    summary = YAML.load(Base64.decode64 driver.result(results[0]))
+    gene_profiles = TSV.new(StringIO.new(Base64.decode64 driver.result(results[2])), :list, :cast => 'to_f')
+    word_profiles = TSV.new(StringIO.new(Base64.decode64 driver.result(results[3])), :list, :cast => 'to_f')
+
+    literature_info = {}
+    index = tsv.index :target => "Ensembl Gene ID", :fields => "Entrez Gene ID"
+    genes.each do |gene|
+      entrez = tsv[gene]["Entrez Gene ID"].first
+      next if entrez.nil? 
+
+      info = {}
+      info[:articles] = tsv[gene]["PMID"]
+
+      info[:group] = summary.index do |group| group[:genes].include? entrez end
+      if not info[:group].nil?
+        info[:other_genes] = summary[info[:group]][:genes].collect{|e| (index[e] || []).first}
+        info[:words] = summary[info[:group]][:words]
+
+        profile = gene_profiles[entrez]
+        info[:gene_words] = word_profiles.collect do |word,scores|
+          [word, scores.zip(profile).collect{|s,p| s * p}.inject(0){|acc,e| acc += e}]
+
+        end.sort_by{|w,scores| scores}.reverse[0..15].collect{|w,score| w}
+      end
+      literature_info[gene] = info
+    end
+
+    while not driver.done literature_job
+      sleep 3
+    end
+    raise driver.messages(literature_job).last if driver.error literature_job
+
+    literature_info.each do |gene,info|
+      articles = info[:articles]
+      if info.include? :gene_words
+        ranks = TSV.new(StringIO.new(driver.search_literature(job, info[:gene_words])), :single, :cast => 'to_f')
+        info[:scores] = articles.collect{|pmid| ranks[pmid] || 0.0}
+      else
+        info[:scores] = articles.collect{|pmid| pmid.to_i }
+      end
+      info[:sorted_articles] = articles.zip(info[:scores]).sort_by{|pmid,score| score}.reverse.collect{|pmid,score| pmid}
+    end
+
+    literature_info
+  end
+end
+
+def job_literature_info(tsv, format = "Ensembl Gene ID")
+  genes = tsv.slice(format).values.flatten.compact.uniq
+  sent_analysis(genes, format)
+end
+
+SENT_URL = "http://sent.dacya.ucm.es/"
+def gene_entrez_literature_info(gene, job = nil)
+  info = PersonalizedMedicine.local_persist(gene, "GeneLiterature", :marshal,  :job => job) do |gene,options|
+    job = options[:job]
+    info = {}
+
+    info[:articles] = Organism::Hsa.gene_pmids.tsv(:persistence => true, :type => :flat)[gene] || []
+    info[:articles] = info[:articles].sort_by{|pmid| pmid.to_i}.reverse
+
+    if not job.nil?
+      job_url = File.join(SENT_URL, 'results', job.sub("=",'.'))
+      summary = YAML.load(Open.read(job_url + '.summary'))
+      
+      group = summary.select do |group| group[:genes].include? gene end.first
+
+
+      if not group.nil?
+        info[:scores] = PersonalizedMedicine.local_persist(group[:words], "Literature", :tsv_string, :job => job) do |words, options|
+          TSV.new(StringIO.new(SOAP::WSDLDriverFactory.new("http://sent.dacya.ucm.es/wsdl/SentWS.wsdl").create_rpc_driver.search_literature(job.sub(/=.*/,''), words)), :single)
+        end
+
+        info[:articles] = info[:articles].sort{|a,b| 
+          case 
+          when (info[:scores][a].nil? and info[:scores][b].nil?)
+            a.to_i <=> b.to_i
+          when info[:scores][a].nil?
+            -1
+          when info[:scores][b].nil?
+            1
+          else
+            info[:scores][a].to_f <=> info[:scores][b].to_f
+          end
+        }.reverse
+        info[:words] = group[:words]
+        info[:genes] = group[:genes]
+      end
+    end
+
+    info
+  end
+
+  info
+end
+
+if __FILE__ == $0
+  genes = TSV.new(Open.open(File.join(File.dirname(__FILE__), 'data/Exclusive.tsv')), :key => "Gene ID", :fields => []).keys
+  ddd sent_analysis(genes, "Ensembl Gene ID")
+end

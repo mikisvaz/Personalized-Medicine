@@ -204,3 +204,12 @@ end
 
 field "OMIM Disease", :width => 100, :display => "Mutation in OMIM"
 
+field "Barcode", :width => 100, :display => "Probe Express." do
+  sort_by do |key,values|
+    if values["Barcode"].empty?
+      0
+    else
+      values["Barcode"].inject(0){|acc,e| acc += e.to_i}.to_f / values["Barcode"].length
+    end
+  end
+end

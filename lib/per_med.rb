@@ -1,4 +1,5 @@
 require 'rbbt-util'
+require 'rbbt/sources/cancer'
 require 'rbbt/sources/organism'
 require 'rbbt/sources/kegg'
 require 'rbbt/sources/pharmagkb'
@@ -15,8 +16,14 @@ module PersonalizedMedicine
   def self.local_persist(*args, &block)
     argsv = *args
     options = argsv.pop
-    options.merge(:persistence_dir => TSV_CACHE_DIR)
-    argsv.push options
+    if Hash === options
+      options.merge!(:persistence_dir => TSV_CACHE_DIR)
+      argsv.push options
+    else
+      argsv.push options
+      argsv.push({:persistence_dir => TSV_CACHE_DIR})
+    end
+    ddd argsv
     Persistence.persist(*argsv, &block)
   end
 
@@ -26,7 +33,7 @@ module PersonalizedMedicine
     @chromosome_bed = {}
 
     %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y).collect do |chromosome|
-      chromosome_bed[chromosome] = Persistence.persist(Organism::Hsa.gene_positions, "Gene_positions[#{chromosome}]", :fwt, :chromosome => chromosome, :range => true) do |file, options|
+      chromosome_bed[chromosome] = Persistence.persist(Organism::Hsa.may2009.gene_positions, "Gene_positions[#{chromosome}]", :fwt, :chromosome => chromosome, :range => true) do |file, options|
         tsv = file.tsv(:persistence => true, :type => :list)
         tsv.select("Chromosome Name" => chromosome).collect do |gene, values|
           [gene, values.values_at("Gene Start", "Gene End").collect{|p| p.to_i}]
@@ -124,6 +131,19 @@ module PersonalizedMedicine
       data.attach snp
       data.attach polyphen
       data.attach firedb
+
+      expression_data = local_persist('LogRatiosMetvsNoMet.tsv', :TSV, :tsv_string, :persistence => true, :persistence_update => true) do
+        expression_data = TSV.new(File.join(File.dirname(filename), 'LogRatiosMetvsNoMet.tsv'), :fields => [1,2,3,4], :type => :double)
+        expression_data.attach TSV.new(File.join(File.dirname(filename), 'BarcodePancreas.tsv'), :type => :double)
+        index = Organism::Hsa.identifiers.index(:target => "Ensembl Gene ID", :persistence => true)
+        expression_data.add_field "Ensembl Gene ID" do |key, values|
+          index.include?(key)?  index[key].uniq : []
+        end
+
+        expression_data = expression_data.reorder "Ensembl Gene ID", expression_data.fields
+        expression_data
+      end
+      data.attach expression_data
 
       data.attach KEGG.gene_drug
       data.attach KEGG.gene_pathway
@@ -256,9 +276,11 @@ module PersonalizedMedicine
 end
 
 if __FILE__ == $0
+  require 'pp'
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  t = PersonalizedMedicine.Raquel_Patient File.join(File.dirname(__FILE__), '../www/data/Raquel.tsv')
+  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
+  ddd t['116252520']
   p t.all_fields
   #t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
   #puts t.slice_namespace("PharmaGKB").to_s

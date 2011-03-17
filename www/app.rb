@@ -27,7 +27,7 @@ $table_config = {
   'Esp66'          => [File.join(SINATRA, 'data/Esp66.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
 }
 
-def data(file)
+def load_data(file)
   marshal_cache('data', file) do
     case file
     when 'Exclusive'
@@ -51,9 +51,9 @@ end
 get '/excel/:file' do
   file = params[:file] || 'Exclusive'
 
-  data, table_config = data(file)
+  tsv, table_config = load_data(file)
 
-  flextable =  FlexTable.new(data, table_config)
+  flextable =  FlexTable.new(tsv, table_config)
 
   excelfile = File.join(SINATRA,'/public/spreadsheets/', file + '.xls')
 
@@ -71,8 +71,8 @@ get '/genecard/:file' do
 
   file = 'Raquel' if file == 'Raquel_Patient'
 
-  data, table_config = data(file)
-  info   = data.select("Ensembl Gene ID" => [gene]).values.first
+  tsv, table_config = load_data(file)
+  info   = tsv.select("Ensembl Gene ID" => [gene]).values.first
   entrez = info["Entrez Gene ID"].first
  
   locals = {
@@ -80,8 +80,8 @@ get '/genecard/:file' do
     :name => info["Associated Gene Name"],
     :info => info,
     :entrez => entrez,
-    :description => entrez_info(entrez).description.flatten.first,
-    :summary => entrez_info(entrez).summary.flatten.first,
+    :description => entrez_info(entrez).nil? ? "MISSING" : entrez_info(entrez).description.flatten.first,
+    :summary => entrez_info(entrez).nil? ? "MISSING" : entrez_info(entrez).summary.flatten.first,
   }
   
   
@@ -95,15 +95,15 @@ post '/data/:file' do
   sortorder   = params[:sortorder] || 'desc'
   file        = params[:file]      || 'Exclusive'
 
-  data, table_config = data(file)
+  tsv, table_config = load_data(file)
 
-  flextable =  FlexTable.new(data, table_config)
+  flextable =  FlexTable.new(tsv, table_config)
 
   rows = flextable.items(page.to_i, rp.to_i, sortname, sortorder, 'html').
     collect{|row| {:id => digest(row.inspect), :cell => row} }
 
   content_type :json
-  data = {:page => page.to_i, :total => data.size, :rows => rows}.to_json
+  {:page => page.to_i, :total => tsv.size, :rows => rows}.to_json
 end
 
 post '/login-user' do
@@ -131,10 +131,10 @@ get '/experiments/*' do
      file = $users.select{|info| info[:user] == session[:user][:user]}.first[:experiments].first
     end
     
-    data, table_config = data(file)
+    tsv, table_config = load_data(file)
 
   
-    @flextable =  FlexTable.new(data, table_config)
+    @flextable =  FlexTable.new(tsv, table_config)
     @file = file
   
     haml :experiments, :layout => true
