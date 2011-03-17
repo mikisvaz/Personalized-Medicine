@@ -23,7 +23,6 @@ module PersonalizedMedicine
       argsv.push options
       argsv.push({:persistence_dir => TSV_CACHE_DIR})
     end
-    ddd argsv
     Persistence.persist(*argsv, &block)
   end
 
