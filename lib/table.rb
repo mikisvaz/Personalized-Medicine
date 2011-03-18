@@ -26,6 +26,7 @@ class FlexTable
       }
     end
 
+    FileUtil.mkdir_p File.dirname(File.expand_path(file)) unless File.exists? File.dirname(File.expand_path(file))
     workbook.write(file)
   end
 

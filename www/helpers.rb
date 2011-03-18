@@ -82,7 +82,7 @@ def kegg_summary(pathways, html = true)
       end if entries
       "<a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>#{desc} #{ cancer }</a>"
     else
-      desc 
+      "[#{ code }]: #{ desc }"
     end 
   end 
 end
