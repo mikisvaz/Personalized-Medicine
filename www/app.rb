@@ -18,6 +18,7 @@ $kegg = KEGG.pathways.tsv(:persistence => true, :type => :list)
 $PharmaGKB_drug_index = PharmaGKB.drugs.tsv(:persistence => true, :type => :list)
 
 $table_config = {
+  'demo'           => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Exclusive'      => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
@@ -30,6 +31,8 @@ $table_config = {
 def load_data(file)
   marshal_cache('data', file) do
     case file
+    when 'demo'
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'Exclusive'
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'Metastasis'
@@ -65,7 +68,7 @@ get '/excel/:file' do
   File.open(excelfile).read
 end
 
-get '/genecard/:file' do 
+get '/ajax/genecard/:file' do 
   file = params[:file] || 'Exclusive'
   gene = params[:gene]
 

@@ -272,6 +272,14 @@ module PersonalizedMedicine
 
     patient_tsv
   end
+
+  def self.demo(filename)
+    new_file = CMD.cmd('sort -R|head -n 100', filename).read
+    TmpFile.with_file(new_file) do |f|
+      self.NGS(f)
+    end
+  end 
+
 end
 
 if __FILE__ == $0
