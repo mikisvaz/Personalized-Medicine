@@ -24,7 +24,7 @@
 :javascript
   $("#loading").ajaxStart(function() { $(this).css('visibility','visible') });
   $("#loading").ajaxStop(function() { $(this).css('visibility','hidden') });
-  genecard_href = '/genecard/' + '#{@file}';
+  genecard_href = '/ajax/genecard/' + '#{@file}';
   function exportToExcell(){
     $(location).attr('href',"/excel/#{ @file }");
   }
