@@ -2,7 +2,11 @@ require 'helpers'
 
 field "Gene", :width => 60, :display => "Gene Name" do
   show do |key, values| 
-   genecard_trigger (values["Associated Gene Name"].first || values["Ensembl Gene ID"].first || "UNKNOWN"), values["Ensembl Gene ID"]
+    if $_table_format == 'html'
+      genecard_trigger (values["Associated Gene Name"].first || values["Ensembl Gene ID"].first || "UNKNOWN"), values["Ensembl Gene ID"].first
+    else
+      values["Associated Gene Name"] * ", "
+    end
   end
 
   sort_by do |key, values| 
@@ -204,3 +208,12 @@ end
 
 field "OMIM Disease", :width => 100, :display => "Mutation in OMIM"
 
+field "Barcode", :width => 100, :display => "Probe Express." do
+  sort_by do |key,values|
+    if values["Barcode"].empty?
+      0
+    else
+      values["Barcode"].inject(0){|acc,e| acc += e.to_i}.to_f / values["Barcode"].length
+    end
+  end
+end

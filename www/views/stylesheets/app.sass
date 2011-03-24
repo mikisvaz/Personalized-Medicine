@@ -9,12 +9,15 @@
 =clearfix
   *display: inline-block
   overflow: visible !important
+  min-height: 1%
+  height: 1%
   &:after
-    content: " "
+    content: "."
     display: block
     height: 0
     clear: both
     visibility: hidden
+    font-size: 0
 
 =button
   +round-corners(2)
@@ -48,6 +51,7 @@
   :padding-top 30px
   :padding-bottom 30px
   :min-height 600px
+  :width 1024px
 .flexigrid
   :margin-top 20px
   :margin-bottom 20px  

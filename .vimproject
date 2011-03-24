@@ -1,4 +1,5 @@
 NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass *.html *.pl" {
+ workflow.rb
  bin=bin{
   gene2drugs.rb
  }

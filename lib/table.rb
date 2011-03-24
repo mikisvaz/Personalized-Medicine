@@ -20,9 +20,13 @@ class FlexTable
     worksheet.row(0).default_format = heading
 
     rows.each_with_index do |row, i| 
-      worksheet.row(i + 1).concat row
+      worksheet.row(i + 1).concat row.collect{|e| 
+        @@ic ||= Iconv.new('UTF-8//IGNORE', 'UTF-8')
+        @@ic.iconv(e)
+      }
     end
 
+    FileUtil.mkdir_p File.dirname(File.expand_path(file)) unless File.exists? File.dirname(File.expand_path(file))
     workbook.write(file)
   end
 
