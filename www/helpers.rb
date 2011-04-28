@@ -203,7 +203,7 @@ def drug_details_summary(matador_drugs, pgkb_drugs, nci_drugs)
   if ((nci_drugs || []).any?)
     nciOut = '<dt><b>NCI  drugs (Full list)</b></dt><dd>'
 
-    nci_drugs_a = nci_drugs.reject{|d| d.first.empty?}.collect do |d|
+    nci_drugs_a = nci_drugs.reject{|d| d.empty? or d.first.empty?}.collect do |d|
       "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a>"
     end.uniq
 

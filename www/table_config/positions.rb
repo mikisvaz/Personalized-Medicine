@@ -32,7 +32,7 @@ field "Protein Mutation", :width => 150, :display => "Protein Mutation" do
       mutation.nil? or mutation.empty? or protein.nil? or protein.empty?
     }.collect do |mutation, protein|
       if $_table_format == 'html'
-        "<a href='http://may2009.archive.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p=#{ protein }'>#{protein} (#{ mutation })</a>"
+        "<a target='_blank' href='http://may2009.archive.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p=#{ protein }'>#{protein} (#{ mutation })</a>"
       else
         "#{protein}(#{ mutation })"
       end
