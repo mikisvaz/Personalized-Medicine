@@ -9,7 +9,7 @@ require 'rbbt/sources/cancer'
 
 def check_logged_user(user,password)
   
-  $users = [{:user => 'demo', :password => 'demo', :experiments => ['demo']},{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis','Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe', :experiments => ['1035','Esp66']}]
+  $users = [{:user => 'demo', :password => 'demo', :experiments => ['demo']},{:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis', 'Pancreas', 'Neuroendocrine', 'Raquel','Raquel_Patient']},{:user => 'preal', :password => '123qwe', :experiments => ['1035','Esp66']}]
   
   if session[:user].include? :user
     return true;
@@ -73,10 +73,15 @@ def kegg_summary(pathways, html = true)
     desc = $kegg[code]["Pathway Name"].sub(/- Homo sapiens.*/,'')
     cancer = ''
     if html
-      entries = $anais[code]
-      entries.zip_fields.each do |cancer, type, score, desc2|
-      #TSV.zip_fields($anais[code]).each do |p|
-      #  cancer, type, score, desc2 = p
+      entries = if $anais.include? code
+                  $anais[code].zip_fields
+                else
+                  []
+                end
+
+      entries.each do |cancer, type, score, desc2|
+        #TSV.zip_fields($anais[code]).each do |p|
+        #  cancer, type, score, desc2 = p
         css_class = (score != nil and score.to_f <= 0.1)?'red':'green';
         cancer += " <span class='#{ css_class } cancertype'>[#{ cancer }]</span>"
       end if entries
@@ -114,7 +119,7 @@ end
 
 def nci_drug_summary(nci_drugs, html = true)
   return [] if nci_drugs.nil?
-  nci_drugs.reject{|d| d.first.empty?}.collect do |d|
+  nci_drugs.reject{|d| d.nil? or d.empty? or d.first.nil? or d.first.empty?}.collect do |d|
     if html
       "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a> [NCI]"
     else
@@ -149,7 +154,12 @@ def pathway_details_summary(kegg_pathways)
     out += "<a href='http://www.genome.jp/kegg/pathway/hsa/#{code}.png'  class='top_up'><img src='http://www.genome.jp/kegg/pathway/hsa/#{code}.png' style='height:50px;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>";
     out += "<p>#{desc} <a target='_blank' href='http://www.genome.jp/kegg-bin/show_pathway?#{code}'>[+]</a></p>"
     name = ''
-    cancers = TSV.zip_fields($anais[code])
+    cancers = if $anais.include? code
+                TSV.zip_fields($anais[code])
+              else
+                []
+              end
+      
     if cancers.any?
       out += '<p>This pathway has more mutations than expected by chance in the following tumour types</p>'
       cancers.each do |p|

@@ -1,5 +1,6 @@
 require 'rbbt-util'
 require 'rbbt/util/workflow'
+require 'rbbt/util/tsv/misc'
 require 'rbbt/sources/organism'
 require 'rbbt/sources/organism/sequence'
 require 'rbbt/sources/cancer'
@@ -13,16 +14,12 @@ require 'rbbt/sources/nci'
 module PerMed
   extend WorkFlow
 
-  def get_ids(file, sep = "\t")
-    CMD.cmd("cut -f 1 -d'#{sep}' '#{file}'").read.split("\n")
-  end
-
   task_option :organism, "Organism code", :string, "Hsa"
   task :database => :tsv do
     organism = options[:organism]
 
     step(:ensembl, "Get all ensembl gene IDS")
-    all_ensembl_ids = get_ids(Organism.identifiers(organism).produce)
+    all_ensembl_ids = TSV.keys(Organism.identifiers(organism).produce)
     set_info :total_genes, all_ensembl_ids.length
 
     step(:prepare, "Prepare initial data store")
@@ -118,7 +115,7 @@ end
 if __FILE__ == $0
   require 'test/unit'
   class TestClass < Test::Unit::TestCase
-    def _test_database
+    def test_database
       job = PerMed.run(:database, "Test", {:organism => 'Hsa'})
       job.join
       puts job.load if not job.error?
@@ -127,18 +124,22 @@ if __FILE__ == $0
 
     def test_genes
       test = %w(CDK5 NR5ANR5A2)
-      job = PerMed.run(:annotate_genes, "Test", test, {:organism => 'Hsa'})
+      job = PerMed.job(:annotate_genes, "Test", test, {:organism => 'Hsa'})
+      job.clean
+      job.run
       job.clean if job.error?
-      assert job.load.include? "CDK5" 
+      assert job.read.include? "CDK5"
     end
-    def _test_mutations
+
+    def test_mutations
       picmi_test = <<-EOF
 5 95787335 M
       EOF
 
       mutations = picmi_test.split(/\n/).collect{|l| l.chomp.sub(/\s+/,':').split(/\s+/) * "\t"} * "\n"
-      job = PerMed.run(:annotate_mutations, "Test13", mutations, :organism => "Hsa/may2009")
-      puts job.load
+      job = PerMed.job(:annotate_mutations, "Test13", mutations, :organism => "Hsa/may2009")
+      job.clean
+      job.run
       job.clean if job.error?
       job.clean
     end

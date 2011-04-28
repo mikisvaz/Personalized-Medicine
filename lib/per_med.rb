@@ -7,6 +7,8 @@ require 'rbbt/sources/matador'
 require 'rbbt/sources/string'
 require 'rbbt/sources/nci'
 require 'rbbt/statistics/hypergeometric'
+require 'rbbt/mutation/snps_and_go'
+require 'rbbt/mutation/sift'
 
 module PersonalizedMedicine
   ROOT_DIR = File.join(File.dirname(__FILE__), '..')
@@ -26,13 +28,14 @@ module PersonalizedMedicine
     Persistence.persist(*argsv, &block)
   end
 
-  def self.chromosome_bed
-    return @chromosome_bed if defined? @chromosome_bed
+  def self.chromosome_bed(organism = "Hsa/may2009")
+    return @chromosome_bed[organism] if defined? @chromosome_bed and @chromosome_bed.include? organism
 
-    @chromosome_bed = {}
+    @chromosome_bed ||= {}
+    @chromosome_bed[organism] = {}
 
     %w(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y).collect do |chromosome|
-      chromosome_bed[chromosome] = Persistence.persist(Organism::Hsa.may2009.gene_positions, "Gene_positions[#{chromosome}]", :fwt, :chromosome => chromosome, :range => true) do |file, options|
+      @chromosome_bed[organism][chromosome] = Persistence.persist(Organism.gene_positions(organism), "Gene_positions[#{chromosome}]", :fwt, :chromosome => chromosome, :range => true) do |file, options|
         tsv = file.tsv(:persistence => true, :type => :list)
         tsv.select("Chromosome Name" => chromosome).collect do |gene, values|
           [gene, values.values_at("Gene Start", "Gene End").collect{|p| p.to_i}]
@@ -40,9 +43,42 @@ module PersonalizedMedicine
       end
     end
 
-    @chromosome_bed
+    @chromosome_bed[organism]
   end
-  
+
+  def self.positions(filename)
+    organism = "Hsa/may2009"
+
+    require 'rbbt/sources/organism/sequence'
+    tsv = TSV.new filename
+    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
+
+    Organism.attach_translations(organism, tsv, "Associated Gene Name")
+    Organism.attach_translations(organism, tsv, "Entrez Gene ID")
+    Organism.attach_translations(organism, tsv, "UniProt/SwissProt Accession")
+    Organism.attach_translations(organism, tsv, "Refseq Protein ID")
+
+    SIFT.add_predictions tsv
+    SNPSandGO.add_predictions tsv
+
+    tsv.namespace = "Hsa"
+    tsv.identifiers = Organism[organism].identifiers.find
+
+    tsv.attach KEGG.gene_drug, nil, :persist_input => true
+    tsv.attach KEGG.gene_pathway, nil, :persist_input => true
+    tsv.attach KEGG.pathways, nil, :in_namespace => "KEGG", :persist_input => true
+    tsv.attach Matador.protein_drug, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_drug, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_disease, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_pathway, nil, :persist_input => true
+    tsv.attach NCI.gene_drug, nil, :persist_input => true
+    tsv.attach NCI.gene_cancer, nil, :persist_input => true
+    tsv.attach Cancer.anais_annotations, nil, :persist_input => true
+
+    tsv
+  end
+
   def self.NGS_Preal(filename)
     data = TSV.new(filename, :key => 'Position1', :keep_empty => true)
 
@@ -91,7 +127,7 @@ module PersonalizedMedicine
 
       poly_info = polyphen[code]
       mutation_info << poly_info
- 
+
       firedb_info = firedb[code] 
       mutation_info << firedb_info
 
@@ -105,23 +141,23 @@ module PersonalizedMedicine
     mutation_data
   end
 
-  def self.NGS(filename)
+  def self.NGS(filename, organism = "Hsa/may2009")
     fields = ["Chr", "Ref Genome Allele", "Variant Allele", "Ubio Score",  "Substitution", "SNP Type", "SIFT:Prediction", "SIFT:Score", "OMIM Disease"]
 
-    data = local_persist(filename, :Misc, :tsv_string, :persistence_update => true) do |file, options, filename|
+    data = local_persist(filename, :Misc, :tsv_string, :persistence => false, :persistence_update => true) do |file, options, filename|
       data = TSV.new(file, :key => 'Position1', :fields => fields, :keep_empty => true)
 
       data.add_field "Ensembl Gene ID" do |position, values|
         chromosome = values["Chr"].first
-        next if chromosome_bed[chromosome].nil?
-        chromosome_bed[chromosome][position]
+        next if chromosome_bed(organism)[chromosome].nil?
+        chromosome_bed(organism)[chromosome][position]
       end
 
       data.namespace = "Hsa"
-      data.identifiers = Organism::Hsa.identifiers
+      data.identifiers = Organism[organism].identifiers.find
 
-      Organism::Hsa.attach_translations(data, "Associated Gene Name")
-      Organism::Hsa.attach_translations(data, "Entrez Gene ID")
+      Organism.attach_translations(organism, data, "Associated Gene Name")
+      Organism.attach_translations(organism, data, "Entrez Gene ID")
 
       snp      = TSV.new(File.join(DATA_DIR,'SNP_GO','snp_go.txt'), :key => 'Substitution', :keep_empty => true, :namespace => "SNP&GO")
       polyphen = TSV.new(File.join(DATA_DIR,'Polyphen','polyphen'), :key => 'Substitution', :keep_empty => true, :namespace => "Polyphen")
@@ -134,7 +170,7 @@ module PersonalizedMedicine
       expression_data = local_persist('LogRatiosMetvsNoMet.tsv', :TSV, :tsv_string, :persistence => true, :persistence_update => true) do
         expression_data = TSV.new(File.join(File.dirname(filename), 'LogRatiosMetvsNoMet.tsv'), :fields => [1,2,3,4], :type => :double)
         expression_data.attach TSV.new(File.join(File.dirname(filename), 'BarcodePancreas.tsv'), :type => :double)
-        index = Organism::Hsa.identifiers.index(:target => "Ensembl Gene ID", :persistence => true)
+        index = TSV.index(Organism.identifiers(organism), :target => "Ensembl Gene ID", :persistence => true)
         expression_data.add_field "Ensembl Gene ID" do |key, values|
           index.include?(key)?  index[key].uniq : []
         end
@@ -144,16 +180,16 @@ module PersonalizedMedicine
       end
       data.attach expression_data
 
-      data.attach KEGG.gene_drug
-      data.attach KEGG.gene_pathway
-      data.attach KEGG.pathways, nil, :in_namespace => "KEGG"
-      data.attach Matador.protein_drug
-      data.attach PharmaGKB.gene_drug
-      data.attach PharmaGKB.gene_disease
-      data.attach PharmaGKB.gene_pathway
-      data.attach NCI.gene_drug
-      data.attach NCI.gene_cancer
-      data.attach Cancer.anais_annotations
+      data.attach KEGG.gene_drug,nil, :persist_input => true
+      data.attach KEGG.gene_pathway,nil, :persist_input => true
+      data.attach KEGG.pathways, nil, :in_namespace => "KEGG",:persist_input => true
+      data.attach Matador.protein_drug,nil, :persist_input => true
+      data.attach PharmaGKB.gene_drug,nil, :persist_input => true
+      data.attach PharmaGKB.gene_disease,nil, :persist_input => true
+      data.attach PharmaGKB.gene_pathway,nil, :persist_input => true
+      data.attach NCI.gene_drug,nil, :persist_input => true
+      data.attach NCI.gene_cancer,nil, :persist_input => true
+      data.attach Cancer.anais_annotations,nil, :persist_input => true
 
       data
     end
@@ -171,15 +207,15 @@ module PersonalizedMedicine
   end
 
 
-  def self.Raquel(filename)
+  def self.Raquel(filename, organism = "Hsa/may2009")
     data = local_persist(filename, :Misc, :tsv_string, :persistence_update => true) do |file, options, filename|
       data = TSV.new(file, :key => 'Ensembl Gene ID', :keep_empty => true)
 
       data.namespace = "Hsa"
-      data.identifiers = Organism::Hsa.identifiers
+      data.identifiers = Organism.identifiers(organism)
 
-      Organism::Hsa.attach_translations(data, "Associated Gene Name")
-      Organism::Hsa.attach_translations(data, "Entrez Gene ID")
+      Organism.attach_translations(organism, data, "Associated Gene Name")
+      Organism.attach_translations(organism, data, "Entrez Gene ID")
 
       type_fields = data.fields.select{|f| f =~ /_type/}.collect{|f| data.identify_field f}
       data.add_field "Lost in Patients" do |key, values|
@@ -220,11 +256,11 @@ module PersonalizedMedicine
     data
   end  
 
-  def self.Raquel_Patient(filename)
+  def self.Raquel_Patient(filename, organism = "Hsa/may2009")
     field_types = %w(type probability expression top5_loss top5_gain)
     data = TSV.new(filename, :list)
 
-    Organism::Hsa.attach_translations data, "Associated Gene Name", nil, :type => :list
+    Organism.attach_translations organism, data, "Associated Gene Name", nil, :type => :list
 
     patient_fields = {}
     data.fields.each do |field|
@@ -286,9 +322,8 @@ if __FILE__ == $0
   require 'pp'
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
-  ddd t['116252520']
-  p t.all_fields
+  t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/Pancreas.tsv')
+  puts t.to_s
   #t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
   #puts t.slice_namespace("PharmaGKB").to_s
   #Open.write('/tmp/test.tsv', t.to_s)

@@ -13,7 +13,8 @@ def digest(str)
 end
 SINATRA = Sinatra::Application.root
 
-$anais = Cancer.anais_annotations.tsv(:persistence => true)
+$anais = Cancer.anais_interactions.tsv(:persistence => true, :type => :list, :key => 1)
+
 $kegg = KEGG.pathways.tsv(:persistence => true, :type => :list)
 $PharmaGKB_drug_index = PharmaGKB.drugs.tsv(:persistence => true, :type => :list)
 
@@ -21,6 +22,8 @@ $table_config = {
   'demo'           => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
+  'Pancreas'       => [File.join(SINATRA, 'data/Pancreas.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
+  'Neuroendocrine' => [File.join(SINATRA, 'data/Neuroendocrine.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
   'Exclusive'      => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Raquel'         => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
   'Raquel_Patient' => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel_patient.rb')],
@@ -39,6 +42,10 @@ def load_data(file)
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'NoMetastasis'
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+    when 'Pancreas'
+      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
+    when 'Neuroendocrine'
+      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
     when 'Raquel'
       [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
     when 'Raquel_Patient'

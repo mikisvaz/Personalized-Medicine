@@ -34,9 +34,11 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
  }
  www=www{
   app.rb
+  main.rb
   helpers.rb
   table_config=table_config{
    ngs.rb
+   positions.rb
    raquel.rb
    raquel_patient.rb
   }
