@@ -1,6 +1,6 @@
 require 'helpers'
 
-field "Associated Gene Name", :width => 60, :display => "Gene Name" do
+field "Associated Gene Name", :width => 100, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
       genecard_trigger (values["Associated Gene Name"].first || values["Ensembl Gene ID"].first || "UNKNOWN"), values["Ensembl Gene ID"].first
@@ -14,33 +14,66 @@ field "Associated Gene Name", :width => 60, :display => "Gene Name" do
   end
 end
 
-field "Mutation", :width => 130, :display => "Mutation" do
+field "Mutation", :width => 100, :display => "Mutation" do
   
   show do |key, values| 
     pm = "#{key}, #{first values["Ref Genome Allele"]}/#{first values["Mutation"]}"
-    if (first values["Protein Mutation"]) != ""
-       pm << " (#{values["Protein Mutation"] * ", "})"
-    end  
     pm
   end
 end
 
+field "Protein Mutation", :width => 150, :display => "Protein Mutation" do
+  
+  show do |key, values| 
+    mutations = values["Protein Mutation"]
+    proteins = values["Ensembl Protein ID"]
 
-field "Type", :width => 30, :align => 'center' do
+    data = mutations.zip(proteins).uniq.reject{|mutation, protein| 
+      mutation.nil? or mutation.empty? or protein.nil? or protein.empty?
+    }.collect do |mutation, protein|
+      if $_table_format == 'html'
+        "<a href='http://may2009.archive.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?p=#{ protein }'>#{protein} (#{ mutation })</a>"
+      else
+        "#{protein}(#{ mutation })"
+      end
+    end
+
+    if $_table_format == 'html'
+      data * "<br>"
+    else
+      data * ",\n"
+    end
+  end
+end
+
+field "Type", :width => 80, :align => 'center' do
   
   show do |key, value| 
-    if value["Protein Mutation"].select{|m| m[0] != m[-1]}.any?
-      "N"
-    else
-      "S"
-    end
+    mutations = value["Protein Mutation"].reject{|m| m[0] == m[-1]}
+    types = []
+    types << "Splicing" if value["Exon Junctures"].reject{|e| e.nil? or e.empty?}.any?
+    types << "Nonsense" if mutations.select{|m| m[-1] == "*"}.any?
+    types << "Missense" if mutations.select{|m| m[-1] != "*"}.any?
+
+    types * ", "
   end
 
   sort_by do |key, value| 
-    if value["Protein Mutation"].select{|m| m[0] != m[-1]}.any?
+    mutations = value["Protein Mutation"].reject{|m| m[0] == m[-1]}
+    types = []
+    types << "Splicing" if value["Exon Junctures"].reject{|e| e.nil? or e.empty?}.any?
+    types << "Nonsense" if mutations.select{|m| m[-1] == "*"}.any?
+    types << "Missense" if mutations.select{|m| m[-1] != "*"}.any?
+
+    case
+    when types.include?("Splicing")
+      2
+    when types.include?("Nonsense")
+      1
+    when types.include?("Missense")
       0
     else
-      1
+      -1
     end
   end
 end

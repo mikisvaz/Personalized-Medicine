@@ -51,19 +51,32 @@ module PersonalizedMedicine
 
     require 'rbbt/sources/organism/sequence'
     tsv = TSV.new filename
-    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
-    tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
-
-    Organism.attach_translations(organism, tsv, "Associated Gene Name")
-    Organism.attach_translations(organism, tsv, "Entrez Gene ID")
-    Organism.attach_translations(organism, tsv, "UniProt/SwissProt Accession")
-    Organism.attach_translations(organism, tsv, "Refseq Protein ID")
-
-    SIFT.add_predictions tsv
-    SNPSandGO.add_predictions tsv
 
     tsv.namespace = "Hsa"
     tsv.identifiers = Organism[organism].identifiers.find
+
+    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
+
+    Organism.attach_translations(organism, tsv, "Associated Gene Name")
+    Organism.attach_translations(organism, tsv, "Entrez Gene ID")
+
+
+    ensp_field = tsv.identify_field "Ensembl Protein ID"
+
+    uniprot_index = Organism.protein_identifiers(organism).index :target => "UniProt/SwissProt Accession", :fields => "Ensembl Protein ID"
+    tsv.add_field "UniProt/SwissProt Accession" do |key,values|
+      (values[ensp_field] || []).collect{|ensp| (uniprot_index[ensp] ||[]).first}
+    end
+
+    refseq_index = Organism.protein_identifiers(organism).index :target => "Refseq Protein ID", :fields => "Ensembl Protein ID"
+    tsv.add_field "Refseq Protein ID" do |key,values|
+      (values[ensp_field] || []).collect{|ensp| (refseq_index[ensp] || []).first}
+    end
+
+    SIFT.add_predictions tsv
+    SNPSandGO.add_predictions tsv
 
     tsv.attach KEGG.gene_drug, nil, :persist_input => true
     tsv.attach KEGG.gene_pathway, nil, :persist_input => true
