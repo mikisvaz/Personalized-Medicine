@@ -52,8 +52,8 @@ field "Type", :width => 80, :align => 'center' do
     mutations = value["Protein Mutation"].reject{|m| m[0] == m[-1]}
     types = []
     types << "Splicing" if value["Exon Junctures"].reject{|e| e.nil? or e.empty?}.any?
-    types << "Nonsense" if mutations.select{|m| m[-1] == "*"}.any?
-    types << "Missense" if mutations.select{|m| m[-1] != "*"}.any?
+    types << "Nonsense" if mutations.select{|m| m[-1] == "*"[0]}.any?
+    types << "Missense" if mutations.select{|m| m[-1] != "*"[0]}.any?
 
     types * ", "
   end
