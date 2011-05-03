@@ -20,6 +20,14 @@ field "Mutation", :width => 100, :display => "Mutation" do
     pm = "#{key}, #{first values["Ref Genome Allele"]}/#{first values["Mutation"]}"
     pm
   end
+
+  sort_by do |key, values|
+    if key =~ /^\d:/
+      "0" << key
+    else
+      key
+    end
+  end
 end
 
 field "Protein Mutation", :width => 150, :display => "Protein Mutation" do

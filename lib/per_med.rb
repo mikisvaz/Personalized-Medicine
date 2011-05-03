@@ -46,8 +46,7 @@ module PersonalizedMedicine
     @chromosome_bed[organism]
   end
 
-  def self.positions(filename)
-    organism = "Hsa/may2009"
+  def self.positions(filename, organism = "Hsa/may2009")
 
     require 'rbbt/sources/organism/sequence'
     tsv = TSV.new filename
@@ -335,7 +334,7 @@ if __FILE__ == $0
   require 'pp'
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/Pancreas.tsv')
+  t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/CLL-4.tsv'), "Hsa"
   puts t.to_s
   #t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
   #puts t.slice_namespace("PharmaGKB").to_s

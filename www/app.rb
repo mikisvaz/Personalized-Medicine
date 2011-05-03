@@ -23,6 +23,8 @@ $table_config = {
   'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Pancreas'       => [File.join(SINATRA, 'data/Pancreas.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
+  'CLL-4'          => [File.join(SINATRA, 'data/CLL-4.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
+  'CLL-12'         => [File.join(SINATRA, 'data/CLL-12.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
   'Neuroendocrine' => [File.join(SINATRA, 'data/Neuroendocrine.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
   'Exclusive'      => [File.join(SINATRA, 'data/Exclusive.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Raquel'         => [File.join(SINATRA, 'data/Raquel.tsv'), File.join(SINATRA, 'table_config/raquel.rb')],
@@ -44,6 +46,10 @@ def load_data(file)
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
     when 'Pancreas'
       [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
+    when 'CLL-4'
+      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last]
+    when 'CLL-12'
+      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last]
     when 'Neuroendocrine'
       [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
     when 'Raquel'
