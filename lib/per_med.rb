@@ -54,13 +54,12 @@ module PersonalizedMedicine
     tsv.namespace = "Hsa"
     tsv.identifiers = Organism[organism].identifiers.find
 
-    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
     tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
-    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
-
     Organism.attach_translations(organism, tsv, "Associated Gene Name")
     Organism.attach_translations(organism, tsv, "Entrez Gene ID")
 
+    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
 
     ensp_field = tsv.identify_field "Ensembl Protein ID"
 
@@ -335,6 +334,7 @@ if __FILE__ == $0
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
   t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/CLL-4.tsv'), "Hsa"
+  ddd t.all_fields
   puts t.to_s
   #t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')
   #puts t.slice_namespace("PharmaGKB").to_s
