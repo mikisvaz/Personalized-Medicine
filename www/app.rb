@@ -34,34 +34,43 @@ $table_config = {
 }
 
 def load_data(file)
-  marshal_cache('data', file) do
+  res = marshal_cache('data', file) do
     case file
     when 'demo'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Exclusive'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Metastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'NoMetastasis'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Pancreas'
-      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'CLL-4'
-      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last]
+      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last, "Hsa"]
     when 'CLL-12'
-      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last]
+      [PersonalizedMedicine.positions($table_config[file].first, 'Hsa'), $table_config[file].last, "Hsa"]
     when 'Neuroendocrine'
-      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Raquel'
-      [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.Raquel($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Raquel_Patient'
-      [PersonalizedMedicine.Raquel_Patient($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.Raquel_Patient($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when '1035'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Esp66'
-      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last]
+      [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     end
   end
+  $org = res.last
+  $ensembl_url = case
+                 when $org == "Hsa"
+                   "www.ensembl.org"
+                 else
+                   "#{$org.sub(/.*\//,'')}.archive.ensembl.org"
+                 end
+
+  res
 end
 
 get '/excel/:file' do
@@ -87,15 +96,32 @@ get '/ajax/genecard/:file' do
 
   file = 'Raquel' if file == 'Raquel_Patient'
 
-  tsv, table_config = load_data(file)
-  info   = tsv.select("Ensembl Gene ID" => [gene]).values.first
+  tsv, table_config, org = load_data(file)
+  
+  info      = tsv.select("Ensembl Gene ID" => [gene]).values.first
+  select    = tsv.select("Ensembl Gene ID" => [gene])
+
+  info   = select.values.first
+  pos    = select.keys.first
+
+  if not file == 'Raquel'
+    chr, position = pos.split(/:/)
+    ensembl = info["Ensembl Gene ID"].first
+  else
+    chr, position, ensembl = nil, nil, nil
+  end
+
   entrez = info["Entrez Gene ID"].first
+
  
   locals = {
   	:file => file,
     :name => info["Associated Gene Name"],
     :info => info,
     :entrez => entrez,
+    :ensembl => ensembl,
+    :chr => chr,
+    :pos => position,
     :description => entrez_info(entrez).nil? ? "MISSING" : entrez_info(entrez).description.flatten.first,
     :summary => entrez_info(entrez).nil? ? "MISSING" : entrez_info(entrez).summary.flatten.first,
   }

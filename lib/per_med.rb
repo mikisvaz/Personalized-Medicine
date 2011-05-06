@@ -86,6 +86,7 @@ module PersonalizedMedicine
     tsv.attach NCI.gene_drug, nil, :persist_input => true
     tsv.attach NCI.gene_cancer, nil, :persist_input => true
     tsv.attach Cancer.anais_annotations, nil, :persist_input => true
+    tsv.attach Organism.gene_go("Hsa")
 
     tsv
   end
@@ -333,7 +334,7 @@ if __FILE__ == $0
   require 'pp'
   #p PersonalizedMedicine.NGS '/home/mvazquezg/git/NGS/data/IRS/table.tsv'
   #require 'rbbt/util/misc'
-  t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/CLL-4.tsv'), "Hsa"
+  t = PersonalizedMedicine.positions File.join(File.dirname(__FILE__), '../www/data/Neuroendocrine.tsv'), "Hsa"
   ddd t.all_fields
   puts t.to_s
   #t = PersonalizedMedicine.NGS File.join(File.dirname(__FILE__), '../www/data/Metastasis.tsv')

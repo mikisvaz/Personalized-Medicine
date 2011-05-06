@@ -5,6 +5,7 @@ require 'rbbt/sources/organism'
 require 'rbbt/sources/entrez'
 require 'rbbt/sources/kegg'
 require 'rbbt/sources/cancer'
+require 'rbbt/sources/go'
 
 
 def check_logged_user(user,password)
@@ -179,6 +180,29 @@ def pathway_details_summary(kegg_pathways)
   out
 end
 
+def protein_details_summary(values, chr, pos)
+  mutations = values["Protein Mutation"]
+  proteins = values["Ensembl Protein ID"]
+  transcripts = values["Ensembl Transcript ID"]
+
+
+  trans = Hash[*proteins.zip(transcripts).flatten]
+  out =  ''
+
+  data = mutations.zip(proteins).uniq.reject{|mutation, protein| 
+    mutation.nil? or mutation.empty? or protein.nil? or protein.empty?
+  }.collect do |mutation, protein|
+    transcript = trans[protein]
+    out += "<h2>#{ protein } : #{mutation} <span style='font-size:0.6em'><a target='_blank' href='http://www.uniprot.org/uniprot/?query=#{protein}&sort=score'>Query Uniprot</a></span></h2>\n"
+    out += "<a  href='http://#{$ensembl_url}/Homo_sapiens/Component/Transcript/Web/TranslationImage?db=core&t=#{transcript}&_rmd=0dce&export=png&download=0' class='_top_up'>"
+    out += "<img src='http://#{$ensembl_url}/Homo_sapiens/Component/Transcript/Web/TranslationImage?db=core&t=#{transcript}&_rmd=0dce&export=png&download=0' style='width:90%;float:left;margin-right:10px;margin-botton:10px;' title='Click to enlarge'/></a>"
+    out += '<div class="clearfix"></div>'
+    out += '<div style="height:10px;">&nbsp;</div>'
+  end
+  out
+end
+
+
 def drug_details_summary(matador_drugs, pgkb_drugs, nci_drugs)
   return 'No drugs found' if (!(matador_drugs || []).any? && !(pgkb_drugs || []).any? && !(nci_drugs || []).any? )
   out =  ''
@@ -208,7 +232,7 @@ def drug_details_summary(matador_drugs, pgkb_drugs, nci_drugs)
   if ((nci_drugs || []).any?)
     nciOut = '<dt><b>NCI  drugs (Full list)</b></dt><dd>'
 
-    nci_drugs_a = nci_drugs.reject{|d| d.empty? or d.first.empty?}.collect do |d|
+    nci_drugs_a = nci_drugs.reject{|d| d.nil? or d.empty? or d.first.nil? or d.first.empty?}.collect do |d|
       "<a target='_blank' href='http://ncit.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI%20Thesaurus&type=properties&code=#{d[1]}'>#{d.first}</a>"
     end.uniq
 

@@ -7,4 +7,29 @@
 %dd= summary
 
 %dd
-  %a{ :target => "_blank", :href => "http://www.ncbi.nlm.nih.gov/sites/entrez?Db=gene&Cmd=ShowDetailView&ordinalpos=1&itool=EntrezSystem2.PEntrez.Gene.Gene_ResultsPanel.Gene_RVDocSum&TermToSearch=#{entrez}"} View more
+  %a{ :target => "_blank", :href => "http://www.ncbi.nlm.nih.gov/sites/entrez?Db=gene&Cmd=ShowDetailView&ordinalpos=1&itool=EntrezSystem2.PEntrez.Gene.Gene_ResultsPanel.Gene_RVDocSum&TermToSearch=#{entrez}"} View gene in NCBI
+  - if chr
+    %a{ :target => "_blank", :href => "http://#{$ensembl_url}/Homo_sapiens/Location/View?db=core;g=#{ensembl};r=#{chr}:#{pos}-#{pos}"} View mutation in Ensembl
+
+- if info.include? "GO Biological Process ID"
+  %dt
+    %b Biological Process Gene Ontology Terms
+  %dd
+    - names = Misc.process_to_hash(info["GO Biological Process ID"] || []){|list| GO.id2name(list)}
+    %table.go
+      %thead
+        %tr
+          %th GO Term
+          %th Name
+  
+      %tbody
+        - (info["GO Biological Process ID"]||[]).sort.uniq.compact.reject{|t| t.empty?}.each do |go|
+          %tr
+            %td
+              %a(href="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=#{go}")= go
+            %td= names[go]
+  
+
+
+
+  
