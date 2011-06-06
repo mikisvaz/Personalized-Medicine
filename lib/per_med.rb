@@ -91,6 +91,62 @@ module PersonalizedMedicine
     tsv
   end
 
+  def self.biomart(filename, organism = "Hsa/may2009")
+    require 'rbbt/sources/organism/sequence'
+
+    tsv = TSV.new filename
+
+    tsv.namespace = "Hsa"
+    tsv.identifiers = Organism[organism].identifiers.find
+
+    tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
+    Organism.attach_translations(organism, tsv, "Associated Gene Name")
+    Organism.attach_translations(organism, tsv, "Entrez Gene ID")
+    Organism.attach_translations(organism, tsv, "AFFY HG U133A_2")
+
+    tsv = tsv.select "Ensembl Gene ID" do |gene|
+      gene.reject{|g| g.empty?}.any?
+    end
+
+    expressed = Open.read(File.join(DATA_DIR, "Barcode/lymphocytes.txt")).split("\n")
+    expressed.shift
+    tsv.add_field "Exp. Affy Prob" do |key, values|
+      values["AFFY HG U133A_2"].collect{|affy| expressed.include?(affy) ? "1" : "0"} 
+    end
+
+    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
+
+    ensp_field = tsv.identify_field "Ensembl Protein ID"
+
+    uniprot_index = Organism.protein_identifiers(organism).index :target => "UniProt/SwissProt Accession", :fields => "Ensembl Protein ID"
+    tsv.add_field "UniProt/SwissProt Accession" do |key,values|
+      (values[ensp_field] || []).collect{|ensp| (uniprot_index[ensp] ||[]).first}
+    end
+
+    refseq_index = Organism.protein_identifiers(organism).index :target => "Refseq Protein ID", :fields => "Ensembl Protein ID"
+    tsv.add_field "Refseq Protein ID" do |key,values|
+      (values[ensp_field] || []).collect{|ensp| (refseq_index[ensp] || []).first}
+    end
+
+    SIFT.add_predictions tsv
+    SNPSandGO.add_predictions tsv
+
+    tsv.attach KEGG.gene_drug, nil, :persist_input => true
+    tsv.attach KEGG.gene_pathway, nil, :persist_input => true
+    tsv.attach KEGG.pathways, nil, :in_namespace => "KEGG", :persist_input => true
+    tsv.attach Matador.protein_drug, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_drug, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_disease, nil, :persist_input => true
+    tsv.attach PharmaGKB.gene_pathway, nil, :persist_input => true
+    tsv.attach NCI.gene_drug, nil, :persist_input => true
+    tsv.attach NCI.gene_cancer, nil, :persist_input => true
+    tsv.attach Cancer.anais_annotations, nil, :persist_input => true
+    tsv.attach Organism.gene_go("Hsa")
+
+    tsv
+  end
+
   def self.NGS_Preal(filename)
     data = TSV.new(filename, :key => 'Position1', :keep_empty => true)
 

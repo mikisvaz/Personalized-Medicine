@@ -12,7 +12,7 @@ def check_logged_user(user,password)
   
   $users = [
     {:user => 'demo', :password => 'demo', :experiments => ['demo']},
-    {:user => 'cll', :password => '123qwe', :experiments => ['CLL-4', 'CLL-12']},
+    {:user => 'cll', :password => '123qwe', :experiments => ['CLL-1', 'CLL-2', 'CLL-3', 'CLL-4']},
     {:user => 'mhidalgo', :password => '123qwe', :experiments => ['Exclusive','Metastasis','NoMetastasis', 'Pancreas', 'Neuroendocrine', 'Raquel','Raquel_Patient']},
     {:user => 'preal', :password => '123qwe', :experiments => ['1035','Esp66']}
   ]

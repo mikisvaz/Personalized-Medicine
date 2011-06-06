@@ -14,7 +14,7 @@
     -if file == 'Raquel'
       %li 
         %a(href='#tabs-3') Patients  
-    -if %w(Pancreas Neuroendocrine).include? file
+    -if %w(Pancreas Neuroendocrine CLL-4 CLL-12).include? file
       %li 
         %a(href='#tabs-3') Mutated Protein Isoforms
     
@@ -34,7 +34,7 @@
   %div#tabs-2
     = haml :_drugs, :layout => false, :locals => {:info => info}  
 
-  -if %w(Pancreas Neuroendocrine).include? file
+  -if %w(Pancreas Neuroendocrine CLL-4 CLL-12).include? file
     %div#tabs-3
       = haml :_protein, :layout => false, :locals => {:info => info, :chr => chr, :pos => pos, :ensembl => ensembl}    
 
