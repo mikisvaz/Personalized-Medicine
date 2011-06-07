@@ -3,7 +3,7 @@ require 'helpers'
 field "Gene", :width => 60, :display => "Gene Name" do
   show do |key, values| 
     if $_table_format == 'html'
-      genecard_trigger(values["Associated Gene Name"].first || values["Ensembl Gene ID"].first || "UNKNOWN"), values["Ensembl Gene ID"].first
+      genecard_trigger((values["Associated Gene Name"].first || values["Ensembl Gene ID"].first || "UNKNOWN"), values["Ensembl Gene ID"].first)
     else
       values["Associated Gene Name"] * ", "
     end
