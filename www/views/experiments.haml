@@ -30,5 +30,5 @@
   }
   
   $('#summary_table').flexigrid(
-    #{ @flextable.flexicode(("/data/" + @file).gsub(/,/,",\n"),:sortname => 'Drugs', :buttons => [{:name => "Export to Excel", :bclass => "add", :onpress =>"CALLBACK"}]).sub(/"CALLBACK"/,'exportToExcell')}
+    #{ @flextable.flexicode(("/data/" + @file).gsub(/,/,",\n"), :sortname => @file.match(/CLL/) ? 'P.M. Severity' : 'Drugs', :buttons => [{:name => "Export to Excel", :bclass => "add", :onpress =>"CALLBACK"}]).sub(/"CALLBACK"/,'exportToExcell')}
   )

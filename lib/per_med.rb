@@ -58,7 +58,7 @@ module PersonalizedMedicine
     Organism.attach_translations(organism, tsv, "Associated Gene Name")
     Organism.attach_translations(organism, tsv, "Entrez Gene ID")
 
-    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_in_exon_junctions, name, tsv.to_s, :organism => organism ).run.load                 
     tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
 
     ensp_field = tsv.identify_field "Ensembl Protein ID"
@@ -102,7 +102,7 @@ module PersonalizedMedicine
     tsv.attach Organism.job(:genomic_mutations_to_genes, name, tsv.to_s, :organism => organism ).run.load                 
     Organism.attach_translations(organism, tsv, "Associated Gene Name")
     Organism.attach_translations(organism, tsv, "Entrez Gene ID")
-    Organism.attach_translations(organism, tsv, "AFFY HG U133A_2")
+    Organism.attach_translations(organism, tsv, "AFFY HG U133-PLUS-2")
 
     tsv = tsv.select "Ensembl Gene ID" do |gene|
       gene.reject{|g| g.empty?}.any?
@@ -111,10 +111,10 @@ module PersonalizedMedicine
     expressed = Open.read(File.join(DATA_DIR, "Barcode/lymphocytes.txt")).split("\n")
     expressed.shift
     tsv.add_field "Exp. Affy Prob" do |key, values|
-      values["AFFY HG U133A_2"].collect{|affy| expressed.include?(affy) ? "1" : "0"} 
+      values["AFFY HG U133-PLUS-2"].collect{|affy| expressed.include?(affy) ? "1" : "0"} 
     end
 
-    tsv.attach Organism.job(:genomic_mutations_in_exon_junctures, name, tsv.to_s, :organism => organism ).run.load                 
+    tsv.attach Organism.job(:genomic_mutations_in_exon_junctions, name, tsv.to_s, :organism => organism ).run.load                 
     tsv.attach Organism.job(:genomic_mutations_to_protein_mutations, name, tsv.to_s, :organism => organism ).run.load                 
 
     ensp_field = tsv.identify_field "Ensembl Protein ID"

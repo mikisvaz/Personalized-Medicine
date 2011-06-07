@@ -37,6 +37,7 @@ NGS=/$PWD filter="Rakefile *.sh *.txt *.rb *.rake *.tsv *.haml *.js *.css *.sass
   main.rb
   helpers.rb
   table_config=table_config{
+   biomart.rb
    ngs.rb
    positions.rb
    raquel.rb

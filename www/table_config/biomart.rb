@@ -109,7 +109,7 @@ field "P.M. type", :width => 60, :align => 'center' do
   show do |key, value| 
     mutations = value["Protein Mutation"].reject{|m| m[0] == m[-1]}
     types = []
-    types << "Exon Juncture" if value["Exon Junctures"].reject{|e| e.nil? or e.empty?}.any?
+    types << "Exon Junction" if value["Exon Junctions"].reject{|e| e.nil? or e.empty?}.any?
     types << "Nonsense" if mutations.select{|m| m[-1] == "*"[0]}.any?
     types << "Missense" if mutations.select{|m| m[-1] != "*"[0]}.any?
 
@@ -119,12 +119,12 @@ field "P.M. type", :width => 60, :align => 'center' do
   sort_by do |key, value| 
     mutations = value["Protein Mutation"].reject{|m| m[0] == m[-1]}
     types = []
-    types << "Exon Juncture" if value["Exon Junctures"].reject{|e| e.nil? or e.empty?}.any?
+    types << "Exon Junction" if value["Exon Junctions"].reject{|e| e.nil? or e.empty?}.any?
     types << "Nonsense" if mutations.select{|m| m[-1] == "*"}.any?
     types << "Missense" if mutations.select{|m| m[-1] != "*"}.any?
 
     case
-    when types.include?("Exon Juncture")
+    when types.include?("Exon Junction")
       2
     when types.include?("Nonsense")
       1
@@ -138,7 +138,7 @@ end
 
 def severity(values)
   severity = 0
-  severity += 1 if values["Exon Junctures"].reject{|v| v.empty?}.any?
+  severity += 1 if values["Exon Junctions"].reject{|v| v.empty?}.any?
   severity += 1 if values["SIFT:Prediction"].select{|v| ["DAMAGING", "Low Confidence"].include? v}.any?
   severity += 1 if values["SNPs&GO:Prediction"].select{|v| ["Disease"].include? v}.any?
   severity
@@ -154,7 +154,7 @@ field "P.M. Severity", :width => 60 do
   end
 end
 
-field "Exp. Affy\n Prob.", :width => 50 do
+field "Exp. Affy\n Prob.", :width => 70 do
   show do |key, values|
     expressed =  values["Exp. Affy Prob"]
     total = expressed.reject{|v| v.empty?}.length
