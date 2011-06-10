@@ -58,7 +58,7 @@ def list_summary(list)
     list * ', '
   else
     list[0..1] * ', ' + ', ' +
-      "<a id='#{code}' class=expand href='' value='#{CGI.escapeHTML(list * ', ').gsub(/'/,'"')}' onclick='expand_field(\"#{code}\");return(false)'>#{list.size - 2} more ...<a>"
+      "<a id='#{code}' class=expand href='' value='#{URI.escape(list * ', ').gsub(/'/,'"')}' onclick='expand_field(\"#{code}\");return(false)'>#{list.size - 2} more ...<a>"
   end
 end
 
