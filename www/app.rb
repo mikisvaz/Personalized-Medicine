@@ -23,6 +23,7 @@ $table_config = {
   'Metastasis'     => [File.join(SINATRA, 'data/Metastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'NoMetastasis'   => [File.join(SINATRA, 'data/NoMetastasis.tsv'), File.join(SINATRA, 'table_config/ngs.rb')],
   'Pancreas'       => [File.join(SINATRA, 'data/Pancreas.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
+  'Pancreas2'       => [File.join(SINATRA, 'data/Pancreas2.tsv'), File.join(SINATRA, 'table_config/positions.rb')],
   'CLL-1'          => [File.join(SINATRA, 'data/CLL-1.tsv'), File.join(SINATRA, 'table_config/biomart.rb')],
   'CLL-2'         => [File.join(SINATRA, 'data/CLL-2.tsv'), File.join(SINATRA, 'table_config/biomart.rb')],
   'CLL-3'         => [File.join(SINATRA, 'data/CLL-3.tsv'), File.join(SINATRA, 'table_config/biomart.rb')],
@@ -47,6 +48,8 @@ def load_data(file)
     when 'NoMetastasis'
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Pancreas'
+      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
+    when 'Pancreas2'
       [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'CLL-1'
       [PersonalizedMedicine.biomart($table_config[file].first, 'Hsa'), $table_config[file].last, "Hsa"]
