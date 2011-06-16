@@ -150,7 +150,7 @@ end
 
 def severity(values)
   severity = 0
-  severity += 1 if values["Exon Junctions"].any?
+  severity += 1 if values["Exon Junctions"].reject{|v| v.empty?}.any?
   severity += 1 if values["SIFT:Prediction"].select{|v| ["DAMAGING", "Low Confidence"].include? v}.any?
   severity += 1 if values["SNPs&GO:Prediction"].select{|v| ["Disease"].include? v}.any?
   severity
