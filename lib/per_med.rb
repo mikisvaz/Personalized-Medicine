@@ -46,7 +46,7 @@ module PersonalizedMedicine
     @chromosome_bed[organism]
   end
 
-  def self.positions(filename, organism = "Hsa/may2009")
+  def self.positions(filename, organism = "Hsa/may2009", tissue = nil)
 
     require 'rbbt/sources/organism/sequence'
     tsv = TSV.new filename
@@ -87,6 +87,19 @@ module PersonalizedMedicine
     tsv.attach NCI.gene_cancer, nil, :persist_input => true
     tsv.attach Cancer.anais_annotations, nil, :persist_input => true
     tsv.attach Organism.gene_go("Hsa")
+
+    if tissue != nil
+      Organism.attach_translations(organism, tsv, "AFFY HG U133-PLUS-2")
+      expressed = Open.read(File.join(DATA_DIR, "Barcode/#{tissue}.txt")).split("\n")
+      expressed.shift
+      tsv.add_field "Exp. Affy Prob" do |key, values|
+        values["AFFY HG U133-PLUS-2"].collect{|affy| expressed.include?(affy) ? "1" : "0"} 
+      end
+    else
+      tsv.add_field "Exp. Affy Prob" do |key, values|
+        []
+      end
+    end
 
     tsv
   end

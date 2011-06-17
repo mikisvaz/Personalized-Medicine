@@ -155,6 +155,7 @@ def severity(values)
   severity += 1 if values["SNPs&GO:Prediction"].select{|v| ["Disease"].include? v}.any?
   severity
 end
+
 field "P.M. Severity", :width => 60 do
   show do |key,value|
     ["Low", "Medium", "High", "Very High", "Very High"][severity(value)]
@@ -162,6 +163,29 @@ field "P.M. Severity", :width => 60 do
 
   sort_by do |key,value|
     severity(value)
+  end
+end
+
+field "Exp. Affy\n Prob.", :width => 70 do
+  show do |key, values|
+    expressed =  values["Exp. Affy Prob"]
+    total = expressed.reject{|v| v.empty?}.length
+    if total == 0
+      "0 / 0" 
+    else
+      exp = expressed.select{|v| v == "1"}.length 
+      "#{ exp } / #{ total }"
+    end
+  end
+
+  sort_by do |key, values|
+    expressed =  values["Exp. Affy Prob"]
+    total = expressed.reject{|v| v.empty?}.length
+    if total == 0
+      0
+    else
+      expressed.select{|v| v == "1"}.length / total
+    end
   end
 end
 

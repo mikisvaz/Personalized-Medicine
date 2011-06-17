@@ -48,9 +48,9 @@ def load_data(file)
     when 'NoMetastasis'
       [PersonalizedMedicine.NGS($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
     when 'Pancreas'
-      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
+      [PersonalizedMedicine.positions($table_config[file].first, "Hsa/may2009", "pancreas"), $table_config[file].last, "Hsa/may2009"]
     when 'Pancreas2'
-      [PersonalizedMedicine.positions($table_config[file].first), $table_config[file].last, "Hsa/may2009"]
+      [PersonalizedMedicine.positions($table_config[file].first, "Hsa/may2009", "pancreas"), $table_config[file].last, "Hsa/may2009"]
     when 'CLL-1'
       [PersonalizedMedicine.biomart($table_config[file].first, 'Hsa'), $table_config[file].last, "Hsa"]
     when 'CLL-2'
