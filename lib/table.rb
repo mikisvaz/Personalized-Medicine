@@ -107,7 +107,7 @@ class FlexTable
     end
   end
 
-  def items(page, num, field, direction, format = nil)
+  def items(page, num, field, direction, format = nil, query = nil, qtype = nil)
     field = @fields.first if field == 'undefined'
     sorted = case
              when @sort[field]
@@ -117,6 +117,10 @@ class FlexTable
              else
                default_sort field
              end
+
+    if not query.nil? and not query.empty?
+      sorted.delete_if{|key,values| not values[qtype].include? query }
+    end
     
     sorted.reverse! if direction == 'desc'
     data(sorted[((page - 1) * num)..(page * num)], format)
@@ -138,7 +142,8 @@ class FlexTable
       :showTableToggleBtn => false,
       :height             => 300,
       :nowrap             => false,
-      :resizable          => false
+      :resizable          => false,
+      :searchitems        => [{:display => "Gene", :name => 'Associated Gene Name'}]
 
 
     flexicode = {

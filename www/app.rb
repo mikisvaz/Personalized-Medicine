@@ -145,12 +145,14 @@ post '/data/:file' do
   sortname    = params[:sortname]  || 'Position'
   sortorder   = params[:sortorder] || 'desc'
   file        = params[:file]      || 'Exclusive'
+  query       = params[:query]      
+  qtype       = params[:qtype]      
 
   tsv, table_config = load_data(file)
 
   flextable =  FlexTable.new(tsv, table_config)
 
-  rows = flextable.items(page.to_i, rp.to_i, sortname, sortorder, 'html').
+  rows = flextable.items(page.to_i, rp.to_i, sortname, sortorder, 'html', query, qtype).
     collect{|row| {:id => digest(row.inspect), :cell => row} }
 
   content_type :json
