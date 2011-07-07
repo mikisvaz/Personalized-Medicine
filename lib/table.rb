@@ -119,7 +119,15 @@ class FlexTable
              end
 
     if not query.nil? and not query.empty?
-      sorted.delete_if{|key,values| not values[qtype].include? query }
+      sorted.delete_if{|key,values| 
+        qtype.split("|").collect do |qt|
+          if qt =~ /KEGG Pathway ID/
+            values[qt].collect{|v| $kegg[v]["Pathway Name"]}.select{|v| v =~ /#{ query }/i }
+          else
+            values[qt].select{|v| v =~ /#{ query }/i }
+          end
+        end.flatten.empty?
+      }
     end
     
     sorted.reverse! if direction == 'desc'
@@ -143,7 +151,12 @@ class FlexTable
       :height             => 300,
       :nowrap             => false,
       :resizable          => false,
-      :searchitems        => [{:display => "Gene", :name => 'Associated Gene Name'}]
+      :searchitems        => [
+        {:display => "Gene", :name => 'Associated Gene Name'},
+        {:display => "Pathway", :name => 'KEGG:KEGG Pathway ID'},
+        {:display => "Cancer", :name => 'Cancer:Tumor Type|NCI:Diseases'},
+        {:display => "Drug", :name => 'Matador:Chemical|PharmaGKB:Drug Name|NCI:Drugs'}
+    ]
 
 
     flexicode = {
