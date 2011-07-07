@@ -156,7 +156,7 @@ post '/data/:file' do
     collect{|row| {:id => digest(row.inspect), :cell => row} }
 
   content_type :json
-  {:page => page.to_i, :total => tsv.size, :rows => rows}.to_json
+  {:page => page.to_i, :total => rows.size, :rows => rows}.to_json
 end
 
 post '/login-user' do
